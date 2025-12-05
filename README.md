@@ -1,10 +1,10 @@
 <div style="font-family: 'Times New Roman', serif;">
 
-Welcome,  
+Welcome,<br />
 
-This is my website  
+This is my website<br />
 
-For contact  
-heroux.laurent@icloud.com  
+For contact<br />
+heroux.laurent@icloud.com<br />
 
 </div>
