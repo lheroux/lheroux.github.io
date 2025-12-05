@@ -1,27 +1,14 @@
 # lheroux.github.io
+<div style="font-family: 'Times New Roman', serif;">
+
 # Welcome
 
-This is my personal project space.  
-Here’s what you’ll find here:
+This is my website
 
 ## About This Project
-Write a short description of what this project is or what you're building.
-
-## What This Includes
-- Point 1  
-- Point 2  
-- Point 3  
-
-## How to Use
-Explain how someone can run or view the project.
-
-```bash
-# example command
-your command here
-```
-
-## Notes
-Add anything important you want visitors to know.
+Coming soon.
 
 ## Contact
-Write how people can reach you or link to your profile.
+heroux.laurent@icloud.com
+
+</div>
