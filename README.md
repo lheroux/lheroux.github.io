@@ -1,4 +1,3 @@
-# lheroux.github.io
 <div style="font-family: 'Times New Roman', serif;">
 
 # Welcome
