@@ -1,1 +1,6 @@
-
+header, .page-header {
+    border-bottom: none !important;   /* remove the underline */
+    box-shadow: none !important;      /* remove drop-shadow some themes use */
+    margin-bottom: 0 !important;      /* remove extra space */
+    padding-bottom: 0 !important;
+}
