@@ -1,13 +1,10 @@
 <div style="font-family: 'Times New Roman', serif;">
 
-# Welcome
+Welcome,  
 
-This is my website
+This is my website  
 
-## About This Project
-Coming soon.
-
-## Contact
-heroux.laurent@icloud.com
+For contact  
+heroux.laurent@icloud.com  
 
 </div>
