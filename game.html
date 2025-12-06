@@ -11,22 +11,25 @@
       font-family: "Times New Roman", serif;
       background: #fff;
       color: #000;
-      max-width: 1200px;
-      margin: 0 auto;
       line-height: 1.6;
       font-size: 14px;
+    }
+    
+    #game-wrapper {
       display: flex;
-      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 60px;
+      justify-content: center;
     }
     
     #main-content {
-      flex: 1;
       max-width: 600px;
     }
     
     #story-container {
-      flex: 1;
-      max-width: 400px;
+      max-width: 300px;
+      padding-top: 0;
     }
     
     .clickable {
@@ -78,45 +81,47 @@
 </head>
 <body>
 
-  <div id="main-content">
-    <div class="line">
-      <span class="clickable" id="think-button">think</span>
+  <div id="game-wrapper">
+    <div id="main-content">
+      <div class="line">
+        <span class="clickable" id="think-button">think</span>
+      </div>
+      
+      <div class="line" style="margin-top: 15px;">
+        knowledge: <span id="knowledge-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="insight-display">
+        insights: <span id="insight-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="focus-display">
+        focus: <span id="focus-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="wisdom-display">
+        wisdom: <span id="wisdom-value">0</span>
+      </div>
+      
+      <div id="choice-container" style="margin-top: 15px;"></div>
+      
+      <div id="upgrade-container" style="margin-top: 15px;"></div>
+      
+      <div id="project-container" style="margin-top: 15px;"></div>
+      
+      <div id="meditation-container" class="hidden" style="margin-top: 15px;"></div>
+      
+      <div id="stats-container" class="hidden" style="margin-top: 20px;">
+        <div class="line">knowledge per click: <span id="click-power">1</span></div>
+        <div class="line">knowledge per second: <span id="kps">0</span></div>
+        <div class="line">total thoughts: <span id="total-clicks">0</span></div>
+      </div>
+      
+      <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
     </div>
     
-    <div class="line" style="margin-top: 15px;">
-      knowledge: <span id="knowledge-value">0</span>
-    </div>
-    
-    <div class="line hidden" id="insight-display">
-      insights: <span id="insight-value">0</span>
-    </div>
-    
-    <div class="line hidden" id="focus-display">
-      focus: <span id="focus-value">0</span>
-    </div>
-    
-    <div class="line hidden" id="wisdom-display">
-      wisdom: <span id="wisdom-value">0</span>
-    </div>
-    
-    <div id="choice-container" style="margin-top: 15px;"></div>
-    
-    <div id="upgrade-container" style="margin-top: 15px;"></div>
-    
-    <div id="project-container" style="margin-top: 15px;"></div>
-    
-    <div id="meditation-container" class="hidden" style="margin-top: 15px;"></div>
-    
-    <div id="stats-container" class="hidden" style="margin-top: 20px;">
-      <div class="line">knowledge per click: <span id="click-power">1</span></div>
-      <div class="line">knowledge per second: <span id="kps">0</span></div>
-      <div class="line">total thoughts: <span id="total-clicks">0</span></div>
-    </div>
-    
-    <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
+    <div id="story-container"></div>
   </div>
-  
-  <div id="story-container"></div>
   
   <div id="upgrade-container" style="margin-top: 15px;"></div>
   
