@@ -13,13 +13,6 @@
       text-shadow: 1px 1px 3px black;
       position: relative;
     }
-    /* background image enabled */
-    .bg-on {
-      background-image: url('centerimage.JPG');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
     .container {
       display: flex;
       flex-direction: column;
@@ -58,14 +51,17 @@
   <div class="copyright">© Laurent Héroux 2025</div>
 
   <script>
-    // Set this to true or false to show/hide background image
-    const showBackground = true;
+    // --- List of images ---
+    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; // add as many as you want
 
-    if(showBackground) {
-      document.body.classList.add('bg-on');
-    } else {
-      document.body.classList.remove('bg-on');
-    }
+    // --- Choose which one to display (0 for first, 1 for second, etc.) ---
+    const selectedImageIndex = 0; // change this number to rotate images
+
+    // --- Apply the selected image as background ---
+    document.body.style.backgroundImage = `url('${images[selectedImageIndex]}')`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundRepeat = 'no-repeat';
   </script>
 </body>
 </html>
