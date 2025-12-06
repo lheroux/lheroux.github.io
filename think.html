@@ -673,13 +673,6 @@ function calculateClickPower() {
   if (state.enlightenments > 0) power *= Math.pow(1.5, state.enlightenments);
   if (state.focus > 0) power *= (1 + state.focus * 0.001);
   
-  // Early game boost for better playability
-  if (state.knowledge < 100) {
-    power *= 1.5;
-  } else if (state.knowledge < 500) {
-    power *= 1.2;
-  }
-  
   return power;
 }
 
