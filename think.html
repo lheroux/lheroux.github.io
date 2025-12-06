@@ -70,17 +70,132 @@
       text-decoration: none !important;
     }
     
-    .home-link {
+    .footer-link {
       position: fixed;
       bottom: 10px;
-      right: 10px;
       font-size: 0.9em;
       text-decoration: none;
       color: black;
+      cursor: pointer;
     }
     
-    .home-link:hover {
-      text-decoration: underline;
+    #home-link {
+      right: 10px;
+    }
+    
+    #settings-link {
+      left: 10px;
+    }
+    
+    #save-indicator {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 0.8em;
+      opacity: 0;
+      transition: opacity 0.3s;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 2px 6px;
+      border-radius: 2px;
+    }
+    
+    .settings-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .settings-content {
+      background: white;
+      padding: 30px;
+      border: 1px solid #ccc;
+      max-width: 400px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .settings-title {
+      font-size: 1.2em;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+    
+    .setting-item {
+      margin: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .setting-label {
+      font-size: 0.95em;
+    }
+    
+    .meditation-progress {
+      margin-top: 5px;
+      height: 3px;
+      background: #eee;
+      overflow: hidden;
+    }
+    
+    .meditation-fill {
+      height: 100%;
+      background: #000;
+      transition: width 0.5s;
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      background-color: #000;
+      color: #fff;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: 3px;
+      font-size: 0.9em;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #000 transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
     }
   </style>
 </head>
@@ -93,19 +208,19 @@
       </div>
       
       <div class="line" style="margin-top: 15px;">
-        knowledge: <span id="knowledge-value">0</span>
+        knowledge: <span id="knowledge-value" class="tooltip">0</span>
       </div>
       
       <div class="line hidden" id="insight-display">
-        insights: <span id="insight-value">0</span>
+        insights: <span id="insight-value" class="tooltip">0</span>
       </div>
       
       <div class="line hidden" id="focus-display">
-        focus: <span id="focus-value">0</span>
+        focus: <span id="focus-value" class="tooltip">0</span>
       </div>
       
       <div class="line hidden" id="wisdom-display">
-        wisdom: <span id="wisdom-value">0</span>
+        wisdom: <span id="wisdom-value" class="tooltip">0</span>
       </div>
       
       <div id="choice-container" style="margin-top: 15px;"></div>
@@ -128,7 +243,35 @@
     <div id="story-container"></div>
   </div>
   
-  <a class="home-link" href="index.html">home</a>
+  <div id="settings-link" class="footer-link clickable" title="Settings">settings</div>
+  <a id="home-link" class="footer-link" href="index.html">home</a>
+  
+  <div id="save-indicator">saved</div>
+  
+  <div id="settings-modal" class="settings-modal">
+    <div class="settings-content">
+      <div class="settings-title">settings</div>
+      
+      <div class="setting-item">
+        <div class="setting-label">auto-save</div>
+        <input type="checkbox" id="setting-autosave" checked>
+      </div>
+      
+      <div class="setting-item">
+        <div class="setting-label">offline progress</div>
+        <input type="checkbox" id="setting-offline" checked>
+      </div>
+      
+      <div class="setting-item">
+        <div class="setting-label">show tooltips</div>
+        <input type="checkbox" id="setting-tooltips" checked>
+      </div>
+      
+      <div class="line" style="margin-top: 30px; text-align: center;">
+        <span class="clickable" id="settings-close">close</span>
+      </div>
+    </div>
+  </div>
 
 <script>
 // Game state
@@ -156,7 +299,34 @@ let state = {
   projectsCompleted: {},
   choicesMade: {},
   storyShown: {},
-  gameEnded: false
+  gameEnded: false,
+  lastUpdate: Date.now(),
+  lastSave: Date.now(),
+  lastActiveTime: Date.now()
+};
+
+// Settings
+let settings = {
+  autoSave: true,
+  offlineProgress: true,
+  showTooltips: true
+};
+
+// Tooltip definitions
+const TOOLTIPS = {
+  'knowledge': 'basic understanding gained through thought',
+  'insights': 'deeper understanding from creative reflection',
+  'focus': 'concentration power from intuition',
+  'wisdom': 'transcendent understanding from experience',
+  'plasticity': 'mental adaptability, enables passive growth',
+  'neurons': 'thinking capacity, increases click power',
+  'synapses': 'automatic thought generation',
+  'pattern_recognition': 'ability to see connections',
+  'memory': 'retention of past thoughts',
+  'logic': 'rational processing (chosen path)',
+  'creativity': 'imaginative processing (chosen path)',
+  'intuition': 'instinctive processing (chosen path)',
+  'collective': 'connection to other minds'
 };
 
 // Story beats
@@ -378,192 +548,196 @@ const PROJECTS = [
 
 // Initialize
 function init() {
+  // Load settings
+  const savedSettings = localStorage.getItem('thinkSettings');
+  if (savedSettings) {
+    try {
+      settings = JSON.parse(savedSettings);
+    } catch (e) {
+      console.error('Failed to load settings:', e);
+    }
+  }
+  
+  // Apply settings to checkboxes
+  document.getElementById('setting-autosave').checked = settings.autoSave;
+  document.getElementById('setting-offline').checked = settings.offlineProgress;
+  document.getElementById('setting-tooltips').checked = settings.showTooltips;
+  
+  // Load game state
+  loadGame();
+  
   addStory('you are. you think. therefore...');
   
-  // Load saved state if it exists
-  const saved = localStorage.getItem('thinkGameState');
-  if (saved) {
-    try {
-      const savedState = JSON.parse(saved);
-      // Calculate offline progress
-      const timeAway = Date.now() - savedState.lastSave;
-      const secondsAway = timeAway / 1000;
-      
-      // Restore state
-      Object.assign(state, savedState);
-      state.startTime = Date.now();
-      state.meditationStart = null;
-      state.meditationBonus = 1;
-      
-      // Calculate offline earnings
-      let passive = 0;
-      passive += state.plasticity * 0.1;
-      passive += state.synapses * 2;
-      passive += state.memory * 25;
-      passive += state.logic * 100;
-      passive += state.collective * 500;
-      
-      if (state.path === 'logic') passive *= 1.3;
-      if (state.path === 'creativity') passive *= 1.1;
-      if (state.path === 'intuition') passive *= 1.2;
-      if (state.phase >= 2) passive *= 2;
-      if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
-      
-      const offlineGain = passive * secondsAway;
-      
-      if (offlineGain > 0) {
-        state.knowledge += offlineGain;
-      }
-      
-      // Calculate offline insights and focus
-      if (state.creativity > 0) {
-        const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
-        state.insights += insightRate * secondsAway;
-      }
-      
-      if (state.intuition > 0) {
-        const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
-        state.focus += focusRate * secondsAway;
-      }
-      
-      if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
-        state.wisdom += state.insights * 0.0001 * secondsAway;
-      }
-    } catch (e) {
-      console.error('Failed to load save:', e);
+  // Start game loop
+  requestAnimationFrame(gameLoop);
+  
+  // Auto-save interval
+  setInterval(() => {
+    if (settings.autoSave) {
+      saveGame();
+      showSaveIndicator();
     }
-  }
+  }, 30000); // Every 30 seconds
   
-  render();
-  setInterval(gameLoop, 100);
-  
-  // Auto-save every 60 seconds
-  setInterval(saveGame, 60000);
-  
-  // Check for tab visibility changes and calculate progress when returning
+  // Set up event listeners for tab visibility
   document.addEventListener('visibilitychange', handleVisibilityChange);
-}
-
-// Handle visibility change (tab switching)
-function handleVisibilityChange() {
-  if (!document.hidden) {
-    // Tab is now visible - calculate time away
-    const saved = localStorage.getItem('thinkGameState');
-    if (saved) {
-      try {
-        const savedState = JSON.parse(saved);
-        const timeAway = Date.now() - savedState.lastSave;
-        const secondsAway = timeAway / 1000;
-        
-        // Only calculate if time away is significant (more than 1 second)
-        if (secondsAway > 1) {
-          // Calculate offline earnings
-          let passive = 0;
-          passive += state.plasticity * 0.1;
-          passive += state.synapses * 2;
-          passive += state.memory * 25;
-          passive += state.logic * 100;
-          passive += state.collective * 500;
-          
-          if (state.path === 'logic') passive *= 1.3;
-          if (state.path === 'creativity') passive *= 1.1;
-          if (state.path === 'intuition') passive *= 1.2;
-          if (state.phase >= 2) passive *= 2;
-          if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
-          
-          const offlineGain = passive * secondsAway;
-          
-          if (offlineGain > 0) {
-            state.knowledge += offlineGain;
-          }
-          
-          // Calculate offline insights and focus
-          if (state.creativity > 0) {
-            const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
-            state.insights += insightRate * secondsAway;
-          }
-          
-          if (state.intuition > 0) {
-            const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
-            state.focus += focusRate * secondsAway;
-          }
-          
-          if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
-            state.wisdom += state.insights * 0.0001 * secondsAway;
-          }
-          
-          updateDisplay();
-        }
-      } catch (e) {
-        console.error('Failed to calculate offline progress:', e);
-      }
-    }
-  }
+  
+  // Initial render
+  updateTooltips();
+  updateDisplay();
 }
 
 // Save game
 function saveGame() {
   try {
-    const saveState = {
-      ...state,
-      lastSave: Date.now()
-    };
-    localStorage.setItem('thinkGameState', JSON.stringify(saveState));
-    addStory('saved');
+    state.lastSave = Date.now();
+    localStorage.setItem('thinkGameState', JSON.stringify(state));
   } catch (e) {
     console.error('Failed to save:', e);
   }
 }
 
-// Game loop
-function gameLoop() {
-  if (state.gameEnded) return;
+// Load game
+function loadGame() {
+  const saved = localStorage.getItem('thinkGameState');
+  if (saved) {
+    try {
+      const savedState = JSON.parse(saved);
+      
+      // Calculate offline progress
+      const timeAway = Date.now() - savedState.lastSave;
+      if (settings.offlineProgress && timeAway > 1000) {
+        calculateOfflineProgress(savedState, timeAway);
+      }
+      
+      // Restore state
+      Object.assign(state, savedState);
+      state.lastUpdate = Date.now();
+      state.meditationStart = null;
+      state.meditationBonus = 1;
+      
+      addStory('progress loaded');
+    } catch (e) {
+      console.error('Failed to load save:', e);
+    }
+  }
+}
+
+// Calculate offline progress
+function calculateOfflineProgress(savedState, timeAway) {
+  const secondsAway = timeAway / 1000;
   
   let passive = 0;
-  passive += state.plasticity * 0.1;
-  passive += state.synapses * 2;
-  passive += state.memory * 25;
-  passive += state.logic * 100;
-  passive += state.collective * 500;
+  passive += savedState.plasticity * 0.1;
+  passive += savedState.synapses * 2;
+  passive += savedState.memory * 25;
+  passive += savedState.logic * 100;
+  passive += savedState.collective * 500;
   
-  if (state.path === 'logic') passive *= 1.3;
-  if (state.path === 'creativity') passive *= 1.1;
-  if (state.path === 'intuition') passive *= 1.2;
+  if (savedState.path === 'logic') passive *= 1.3;
+  if (savedState.path === 'creativity') passive *= 1.1;
+  if (savedState.path === 'intuition') passive *= 1.2;
+  if (savedState.phase >= 2) passive *= 2;
+  if (savedState.enlightenments > 0) passive *= Math.pow(1.5, savedState.enlightenments);
   
-  if (state.phase >= 2) passive *= 2;
+  const offlineGain = passive * secondsAway;
   
-  if (state.enlightenments > 0) {
-    passive *= Math.pow(1.5, state.enlightenments);
+  if (offlineGain > 0) {
+    state.knowledge += offlineGain;
   }
   
-  if (state.meditationStart) {
-    const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
-    state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
+  // Calculate offline insights and focus
+  if (savedState.creativity > 0) {
+    const insightRate = savedState.creativity * (savedState.path === 'creativity' ? 0.03 : 0.01);
+    state.insights += insightRate * secondsAway;
   }
   
-  passive *= state.meditationBonus;
-  
-  if (passive > 0) {
-    state.knowledge += passive / 10;
+  if (savedState.intuition > 0) {
+    const focusRate = savedState.intuition * (savedState.path === 'intuition' ? 0.03 : 0.01);
+    state.focus += focusRate * secondsAway;
   }
   
-  if (state.creativity > 0) {
-    const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
-    state.insights += insightRate / 10;
+  if (savedState.projectsCompleted && savedState.projectsCompleted['wisdom_proj'] && savedState.insights > 100) {
+    state.wisdom += savedState.insights * 0.0001 * secondsAway;
+  }
+}
+
+// Handle tab visibility change
+function handleVisibilityChange() {
+  if (document.hidden) {
+    // Tab became inactive - save current time
+    state.lastActiveTime = Date.now();
+    saveGame();
+  } else {
+    // Tab became active - calculate time away
+    const timeAway = Date.now() - state.lastActiveTime;
+    if (settings.offlineProgress && timeAway > 1000) {
+      calculateOfflineProgress(state, timeAway);
+      updateDisplay();
+    }
+  }
+}
+
+// Game loop using requestAnimationFrame
+let lastFrameTime = 0;
+const FRAME_INTERVAL = 50; // Update every 50ms (20fps)
+
+function gameLoop(currentTime) {
+  if (state.gameEnded) return;
+  
+  if (currentTime - lastFrameTime >= FRAME_INTERVAL) {
+    const deltaTime = (currentTime - lastFrameTime) / 1000;
+    
+    // Calculate passive gains
+    let passive = 0;
+    passive += state.plasticity * 0.1;
+    passive += state.synapses * 2;
+    passive += state.memory * 25;
+    passive += state.logic * 100;
+    passive += state.collective * 500;
+    
+    if (state.path === 'logic') passive *= 1.3;
+    if (state.path === 'creativity') passive *= 1.1;
+    if (state.path === 'intuition') passive *= 1.2;
+    
+    if (state.phase >= 2) passive *= 2;
+    
+    if (state.enlightenments > 0) {
+      passive *= Math.pow(1.5, state.enlightenments);
+    }
+    
+    if (state.meditationStart) {
+      const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
+      state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
+    }
+    
+    passive *= state.meditationBonus;
+    
+    if (passive > 0) {
+      state.knowledge += passive * deltaTime;
+    }
+    
+    if (state.creativity > 0) {
+      const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+      state.insights += insightRate * deltaTime;
+    }
+    
+    if (state.intuition > 0) {
+      const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+      state.focus += focusRate * deltaTime;
+    }
+    
+    if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+      state.wisdom += state.insights * 0.0001 * deltaTime;
+    }
+    
+    checkStories();
+    updateDisplay();
+    
+    lastFrameTime = currentTime;
   }
   
-  if (state.intuition > 0) {
-    const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
-    state.focus += focusRate / 10;
-    document.getElementById('focus-display').classList.remove('hidden');
-  }
-  
-  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
-    state.wisdom += state.insights * 0.0001 / 10;
-  }
-  
-  checkStories();
-  updateDisplay();
+  requestAnimationFrame(gameLoop);
 }
 
 // Click handler
@@ -652,11 +826,13 @@ function addStory(text) {
 
 // Update display
 function updateDisplay() {
-  document.getElementById('knowledge-value').textContent = formatNumber(Math.floor(state.knowledge));
-  document.getElementById('insight-value').textContent = formatNumber(Math.floor(state.insights));
-  document.getElementById('focus-value').textContent = formatNumber(Math.floor(state.focus));
-  document.getElementById('wisdom-value').textContent = formatNumber(Math.floor(state.wisdom));
+  // Update values
+  document.getElementById('knowledge-value').textContent = formatNumber(state.knowledge);
+  document.getElementById('insight-value').textContent = formatNumber(state.insights);
+  document.getElementById('focus-value').textContent = formatNumber(state.focus);
+  document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
   
+  // Calculate stats
   let kps = state.plasticity * 0.1 + state.synapses * 2 + state.memory * 25 + state.logic * 100 + state.collective * 500;
   if (state.path === 'logic') kps *= 1.3;
   if (state.path === 'creativity') kps *= 1.1;
@@ -677,11 +853,12 @@ function updateDisplay() {
   document.getElementById('click-power').textContent = formatNumber(clickPower.toFixed(1));
   document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
   
+  updateChoices();
   updateUpgrades();
   updateProjects();
   updateResources();
-  updateChoices();
   updateMeditation();
+  updateTooltips();
 }
 
 // Update choices
@@ -734,17 +911,32 @@ function updateMeditation() {
     const seconds = Math.floor((Date.now() - state.meditationStart) / 1000);
     const line = document.createElement('div');
     line.className = 'line';
-    line.textContent = `meditating... (${seconds}s, ${state.meditationBonus.toFixed(1)}x bonus)`;
+    line.textContent = `meditating... ${seconds}s (${state.meditationBonus.toFixed(1)}x)`;
+    
+    // Simple black and white progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'meditation-progress';
+    
+    const progressFill = document.createElement('div');
+    progressFill.className = 'meditation-fill';
+    progressFill.style.width = `${Math.min(100, (seconds / 200) * 100)}%`;
+    
+    progressBar.appendChild(progressFill);
+    
     container.appendChild(line);
+    container.appendChild(progressBar);
   } else {
     const line = document.createElement('div');
     line.className = 'line';
-    const link = document.createElement('span');
-    link.className = 'clickable';
-    link.textContent = 'meditate';
-    link.onclick = startMeditation;
-    line.appendChild(link);
+    
+    const meditateBtn = document.createElement('span');
+    meditateBtn.className = 'clickable';
+    meditateBtn.textContent = 'meditate';
+    meditateBtn.onclick = startMeditation;
+    
+    line.appendChild(meditateBtn);
     line.appendChild(document.createTextNode(' (stop clicking to build bonus)'));
+    
     container.appendChild(line);
   }
 }
@@ -872,6 +1064,22 @@ function updateResources() {
   }
 }
 
+// Update tooltips
+function updateTooltips() {
+  if (!settings.showTooltips) return;
+  
+  // Update resource tooltips
+  Object.keys(TOOLTIPS).forEach(key => {
+    const element = document.getElementById(`${key}-value`);
+    if (element && !element.querySelector('.tooltiptext')) {
+      const tooltip = document.createElement('span');
+      tooltip.className = 'tooltiptext';
+      tooltip.textContent = TOOLTIPS[key];
+      element.appendChild(tooltip);
+    }
+  });
+}
+
 // Enlightenment
 function enlighten() {
   state.enlightenments += 1;
@@ -901,7 +1109,10 @@ function enlighten() {
     projectsCompleted: {},
     choicesMade: {},
     storyShown: {},
-    gameEnded: false
+    gameEnded: false,
+    lastUpdate: Date.now(),
+    lastSave: Date.now(),
+    lastActiveTime: Date.now()
   };
   
   addStory('you begin again, carrying the weight of experience');
@@ -982,14 +1193,61 @@ function endGame(ending) {
 // Format numbers
 function formatNumber(num) {
   if (typeof num === 'string') return num;
-  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+  
+  if (num >= 1e33) return (num / 1e33).toFixed(2) + 'D';
+  if (num >= 1e30) return (num / 1e30).toFixed(2) + 'N';
+  if (num >= 1e27) return (num / 1e27).toFixed(2) + 'O';
+  if (num >= 1e24) return (num / 1e24).toFixed(2) + 'S';
+  if (num >= 1e21) return (num / 1e21).toFixed(2) + 's';
+  if (num >= 1e18) return (num / 1e18).toFixed(2) + 'Q';
+  if (num >= 1e15) return (num / 1e15).toFixed(2) + 'q';
+  if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+  
   return Math.floor(num).toString();
 }
 
-function render() {
-  updateDisplay();
+// Show save indicator
+function showSaveIndicator() {
+  const indicator = document.getElementById('save-indicator');
+  indicator.style.opacity = '1';
+  setTimeout(() => {
+    indicator.style.opacity = '0';
+  }, 2000);
 }
+
+// Settings functions
+function openSettings() {
+  document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').style.display = 'none';
+  saveSettings();
+}
+
+function saveSettings() {
+  settings.autoSave = document.getElementById('setting-autosave').checked;
+  settings.offlineProgress = document.getElementById('setting-offline').checked;
+  settings.showTooltips = document.getElementById('setting-tooltips').checked;
+  
+  localStorage.setItem('thinkSettings', JSON.stringify(settings));
+  
+  // Update tooltips visibility
+  updateTooltips();
+}
+
+// Event listeners for settings
+document.getElementById('settings-link').onclick = openSettings;
+document.getElementById('settings-close').onclick = closeSettings;
+
+// Close settings when clicking outside
+document.getElementById('settings-modal').onclick = function(e) {
+  if (e.target === this) {
+    closeSettings();
+  }
+};
 
 // Initialize
 init();
