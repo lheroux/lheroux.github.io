@@ -9,10 +9,9 @@
       margin: 0;
       height: 100%;
       font-family: "Times New Roman", serif;
-      color: white;
-      text-shadow: 0px 0px 0px black;
+      color: black;
+      background-color: white;
       position: relative;
-      background-color: black;
     }
 
     .container {
@@ -33,7 +32,6 @@
     }
 
     img {
-      max-width: 65%;
       height: auto;
       display: block;
     }
@@ -57,10 +55,8 @@
   <div class="container">
     <h1>laurent héroux</h1>
 
-    <!-- centered image -->
     <img id="main-image" alt="image">
 
-    <!-- time under the image -->
     <p class="time-text" id="montreal-time"></p>
   </div>
 
@@ -70,11 +66,16 @@
     // images
     const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG'];
 
-    // choose
+    // choose which image
     const selectedImageIndex = 2;
 
+    // --- adjust image size here (percentage of screen width) ---
+    const imageSizePercent = 40; // change this (e.g., 20, 35, 50, 60)
+
     // set centered <img>
-    document.getElementById('main-image').src = images[selectedImageIndex];
+    const imgElement = document.getElementById('main-image');
+    imgElement.src = images[selectedImageIndex];
+    imgElement.style.maxWidth = imageSizePercent + "%";
 
     // live montreal time
     function updateMontrealTime() {
@@ -87,7 +88,7 @@
         hour12: true
       };
       const timeString = now.toLocaleTimeString('en-CA', options);
-      document.getElementById('montreal-time').textContent = 
+      document.getElementById('montreal-time').textContent =
         `time in montréal - ${timeString}`;
     }
 
