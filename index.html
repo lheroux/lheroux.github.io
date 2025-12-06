@@ -10,28 +10,32 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        justify-content: center; /* vertical centering */
+        align-items: center;     /* horizontal centering */
         text-align: center;
         font-family: "Times New Roman", serif;
-      }
-      img {
-        max-width: 40%;
-        height: auto;
-        margin: 10px 0;
+        /* Full-page background image */
+        background-image: url('centerimage.JPG');
+        background-size: cover;       /* fill entire page */
+        background-position: center;  /* center image */
+        background-repeat: no-repeat; /* no tiling */
+        color: white;                 /* text color to stand out */
+        text-shadow: 1px 1px 3px black; /* optional: make text readable */
       }
       h1 {
         font-style: italic;
         margin: 0;
+        font-size: 3em; /* adjust size as needed */
       }
       p {
-        margin: 0;
+        margin: 10px 0 0 0;
+        font-size: 1.5em;
       }
     </style>
   </head>
   <body>
     <h1>LAURENT HÉROUX</h1>
-    <img src="centerimage.JPG" alt="Centered Image">
     <p>Personal website, more info coming</p>
   </body>
 </html>
+
