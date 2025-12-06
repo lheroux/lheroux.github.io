@@ -584,11 +584,18 @@ function updateUpgrades() {
       
       const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
       
-      link.onclick = () => {
+      // Always attach onclick, check affordability inside
+      link.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Clicked:', upgrade.name, 'Cost:', cost, 'Current knowledge:', state.knowledge);
         if (state.knowledge >= cost) {
           state.knowledge -= cost;
           upgrade.effect();
+          console.log('Purchased! New state:', state);
           updateDisplay();
+        } else {
+          console.log('Cannot afford');
         }
       };
       
