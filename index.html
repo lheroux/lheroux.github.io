@@ -1,57 +1,71 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>LAURENT HÉROUX</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8">
-    <style>
-      html, body {
-        margin: 0;
-        height: 100%;
-        font-family: "Times New Roman", serif;
-        color: white;
-        text-shadow: 1px 1px 3px black;
-        background-image: url('centerimage.JPG');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        position: relative; /* needed for absolute children */
-      }
-      .container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* centers content vertically */
-        align-items: center;     /* horizontal centering */
-        height: 100%;
-        text-align: center;
-      }
-      h1 {
-        font-style: italic;
-        font-size: 3em;
-        margin: -100px 0 20px 0; /* keeps title in place */
-      }
-      p.top-text {
-        position: absolute;
-        top: 10px;             /* distance from top of page */
-        left: 50%;             /* horizontal center */
-        transform: translateX(-50%); /* truly center horizontally */
-        font-size: 1.5em;
-        margin: 0;
-      }
-      .copyright {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        font-size: 0.8em;
-        text-shadow: 1px 1px 2px black;
-      }
-    </style>
-  </head>
-  <body>
-    <p class="top-text">Personal website, more info coming</p>
-    <div class="container">
-      <h1>LAURENT HÉROUX</h1>
-    </div>
-    <div class="copyright">© Laurent Héroux 2025</div>
-  </body>
+<head>
+  <title>LAURENT HÉROUX</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Times New Roman", serif;
+      color: white;
+      text-shadow: 1px 1px 3px black;
+      position: relative;
+    }
+    /* background image enabled */
+    .bg-on {
+      background-image: url('centerimage.JPG');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+    }
+    h1 {
+      font-style: italic;
+      font-size: 3em;
+      margin: -100px 0 20px 0;
+    }
+    p.top-text {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5em;
+      margin: 0;
+    }
+    .copyright {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      font-size: 0.8em;
+      text-shadow: 1px 1px 2px black;
+    }
+  </style>
+</head>
+<body>
+  <p class="top-text">Personal website, more info coming</p>
+  <div class="container">
+    <h1>LAURENT HÉROUX</h1>
+  </div>
+  <div class="copyright">© Laurent Héroux 2025</div>
+
+  <script>
+    // Set this to true or false to show/hide background image
+    const showBackground = false;
+
+    if(showBackground) {
+      document.body.classList.add('bg-on');
+    } else {
+      document.body.classList.remove('bg-on');
+    }
+  </script>
+</body>
 </html>
