@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>THINK — awakening</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root{
+      --bg:#fff;
+      --fg:#000;
+      --muted:#444;
+      --accent:#111;
+      --panel:#f3f3f3;
+    }
+    body {
+      margin:0;
+      font-family: "Times New Roman", serif;
+      background:var(--bg);
+      color:var(--fg);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      min-height:100vh;
+      padding:24px;
+    }
+    .dark {
+      --bg:#051018;
+      --fg:#cfeefc;
+      --muted:#89b2c6;
+      --accent:#8fd3ff;
+      --panel:#0b2230;
+    }
+
+    h1 { font-style:italic; margin:10px 0 6px 0; font-size:2em; }
+    #game {
+      width:980px;
+      max-width:94%;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:18px;
+      align-items:start;
+    }
+
+    .left, .right {
+      background:var(--panel);
+      padding:16px;
+      border-radius:8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .left { min-height:520px; }
+    .right { height:520px; overflow:auto; }
+
+    #think-button {
+      display:inline-block;
+      padding:16px 28px;
+      border:2px solid var(--accent);
+      cursor:pointer;
+      font-size:1.6em;
+      user-select:none;
+      background:transparent;
+      color:var(--fg);
+      border-radius:8px;
+      margin-bottom:10px;
+    }
+    #think-button:active { transform:translateY(1px); }
+
+    .stats { display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
+    .stat {
+      background: rgba(0,0,0,0.03);
+      padding:8px 10px;
+      border-radius:6px;
+      min-width:140px;
+      font-size:1.05em;
+      color:var(--fg);
+    }
+    .big {
+      font-size:1.2em;
+      font-weight:600;
+    }
+
+    .upgrades { margin-top:14px; display:flex; flex-direction:column; gap:12px;}
+    .upgrade {
+      padding:10px;
+      border:1px solid rgba(0,0,0,0.08);
+      background:rgba(255,255,255,0.02);
+      cursor:pointer;
+      border-radius:6px;
+      text-align:left;
+      user-select:none;
+    }
+    .upgrade.disabled { opacity:0.45; cursor:default; }
+
+    .small { font-size:0.9em; color:var(--muted); }
+
+    .panel-title { font-weight:700; margin-bottom:8px; }
+
+    #ascii {
+      white-space:pre;
+      font-family: "Courier New", monospace;
+      background: rgba(0,0,0,0.02);
+      padding:12px;
+      border-radius:6px;
+      min-height:220px;
+      overflow:auto;
+      color:var(--fg);
+    }
+
+    #story {
+      background:rgba(0,0,0,0.01);
+      padding:10px;
+      border-radius:6px;
+      height:140px;
+      overflow:auto;
+      font-size:0.95em;
+      line-height:1.3;
+    }
+
+    .events { margin-top:8px; }
+    .event {
+      margin-bottom:6px;
+      padding:8px;
+      border-left:4px solid var(--accent);
+      background:rgba(0,0,0,0.02);
+      border-radius:4px;
+    }
+
+    .ach-toast {
+      position:fixed;
+      right:20px;
+      top:20px;
+      background:var(--panel);
+      color:var(--fg);
+      padding:12px 16px;
+      border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.3);
+      z-index:9999;
+      opacity:0;
+      transform:translateY(-12px);
+      transition:all .35s ease;
+    }
+    .ach-toast.show { opacity:1; transform:translateY(0); }
+
+    .footer {
+      width:980px; max-width:94%; margin-top:18px; display:flex; justify-content:space-between; align-items:center;
+    }
+    .controls { display:flex; gap:8px; }
+    button.smallbtn {
+      padding:8px 10px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); background:transparent; cursor:pointer;
+    }
+
+    /* responsive */
+    @media (max-width:900px) {
+      #game { grid-template-columns: 1fr; }
+      .right { height:auto; }
+      .left { min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>THINK — AWAKENING</h1>
+
+  <div id="game">
+    <div class="left">
+      <div id="controls-top">
+        <div id="think-button">THINK</div>
+        <div class="stats">
+          <div class="stat big" id="s-knowledge">Knowledge: 0</div>
+          <div class="stat" id="s-plasticity">Neuroplasticity: 0</div>
+          <div class="stat" id="s-factories">Synapse Factories: 0</div>
+          <div class="stat" id="s-network">Neural Network: 1</div>
+          <div class="stat" id="s-layers">Deep Layers: 0</div>
+        </div>
+      </div>
+
+      <div class="upgrades">
+        <div id="btn-plasticity" class="upgrade disabled">Buy Neuroplasticity (50 K)</div>
+        <div id="btn-factory" class="upgrade disabled">Build Synapse Factory (150 K)</div>
+        <div id="btn-network" class="upgrade disabled">Expand Neural Network (200 K)</div>
+        <div id="btn-layer" class="upgrade disabled">Add Deep Layer (500 K)</div>
+        <div id="btn-burnout" class="upgrade disabled">Stabilize (reduce burnout risk) (cost: dynamic)</div>
+        <div id="btn-transcend" class="upgrade disabled">Transcend (reset & permanent boost) (5,000 K)</div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="panel-title">ASCII Neural Diagram</div>
+        <div id="ascii"></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="panel-title">Story Log</div>
+        <div id="story"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="panel-title">EVENTS & NOTIFICATIONS</div>
+      <div id="events" class="events"></div>
+
+      <div style="margin-top:12px;">
+        <div class="panel-title">Achievements</div>
+        <div id="achievements" class="small"></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="panel-title">Diagnostics</div>
+        <div class="small" id="diag"></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="panel-title">Save / Load</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="smallbtn" id="save-btn">Save</button>
+          <button class="smallbtn" id="load-btn">Load</button>
+          <button class="smallbtn" id="reset-btn">Hard Reset</button>
+          <button class="smallbtn" id="export-btn">Export</button>
+          <button class="smallbtn" id="import-btn">Import</button>
+          <label style="display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="autosave" checked> Autosave
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="small">A dark awakening simulation. Progress persists locally.</div>
+    <div class="controls">
+      <button class="smallbtn" id="toggle-sfx">Toggle Flavor</button>
+      <button class="smallbtn" id="force-awake">Force Awakening</button>
+      <a href="index.html" class="smallbtn" style="text-decoration:none; color:inherit;">Home</a>
+    </div>
+  </div>
+
+  <div id="ach-toast" class="ach-toast"></div>
+
+<script>
+/* -------------------------
+   CORE STATE & SETTINGS
+   ------------------------- */
+const stateKey = "think_awaken_save_v1";
+let state = {
+  knowledge: 0,
+  plasticity: 0,
+  factories: 0,
+  network: 1,
+  layers: 0,
+  transcend: 0,
+  awakened: false,
+  flavorOn: true,
+  achievements: {},
+  time: Date.now(),
+  lastTick: Date.now()
+};
+
+const config = {
+  tickMs: 1000,
+  factoryPlasticityRate: 0.6,   // plasticity per factory per sec
+  basePassive: 0.2,             // base passive knowledge/sec per plasticity unit
+  layerMultiplier: 0.20,        // 20% per layer
+  transcendBoost: 0.5,          // 50% per transcend
+  burnoutThresholdMultiplier: 4 // network > plasticity * 4 -> burnout
+};
+
+/* -------------------------
+   UTILITIES
+   ------------------------- */
+function saveState() {
+  state.lastTick = Date.now();
+  localStorage.setItem(stateKey, JSON.stringify(state));
+  showEvent("Game saved.");
+}
+function loadState() {
+  const raw = localStorage.getItem(stateKey);
+  if (!raw) { showEvent("No save found."); return false; }
+  try {
+    state = JSON.parse(raw);
+    showEvent("Save loaded.");
+    return true;
+  } catch(e) {
+    showEvent("Failed to load save.");
+    return false;
+  }
+}
+function exportState() {
+  const data = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  prompt("Copy your save string:", data);
+}
+function importStateString() {
+  const v = prompt("Paste your save string here:");
+  if (!v) return;
+  try {
+    const raw = decodeURIComponent(escape(atob(v)));
+    state = JSON.parse(raw);
+    showEvent("Imported save.");
+    updateAll();
+  } catch(e) { showEvent("Import failed."); }
+}
+function hardReset() {
+  if (!confirm("Reset all progress?")) return;
+  state = {
+    knowledge: 0,
+    plasticity: 0,
+    factories: 0,
+    network: 1,
+    layers: 0,
+    transcend: 0,
+    awakened: false,
+    flavorOn: state.flavorOn,
+    achievements: {},
+    time: Date.now(),
+    lastTick: Date.now()
+  };
+  localStorage.removeItem(stateKey);
+  updateAll();
+  showEvent("Hard reset complete.");
+}
+
+/* -------------------------
+   UI SHORTCUTS
+   ------------------------- */
+const dom = {
+  k: () => document.getElementById("s-knowledge"),
+  p: () => document.getElementById("s-plasticity"),
+  f: () => document.getElementById("s-factories"),
+  n: () => document.getElementById("s-network"),
+  l: () => document.getElementById("s-layers"),
+  ascii: () => document.getElementById("ascii"),
+  story: () => document.getElementById("story"),
+  events: () => document.getElementById("events"),
+  diag: () => document.getElementById("diag"),
+  ach: () => document.getElementById("achievements"),
+  toast: () => document.getElementById("ach-toast"),
+};
+
+/* -------------------------
+   ACHIEVEMENTS
+   ------------------------- */
+const ACH = [
+  { id:"first_think", label:"First Thought", desc:"Click THINK once.", check: s=>s.knowledge>=1 },
+  { id:"plastic_born", label:"Plastic Emergence", desc:"Buy 1 neuroplasticity.", check: s=>s.plasticity>=1 },
+  { id:"factory_first", label:"Factory Floor", desc:"Build a synapse factory.", check: s=>s.factories>=1 },
+  { id:"deep_layer", label:"Deep Layer", desc:"Add a deep learning layer.", check: s=>s.layers>=1 },
+  { id:"network_5", label:"Expanding Mind", desc:"Network reaches level 5.", check: s=>s.network>=5 },
+  { id:"transcend_1", label:"Transcendence", desc:"Transcend once.", check: s=>s.transcend>=1 },
+  { id:"awakening", label:"Awakening", desc:"Trigger the Awakening event.", check: s=>s.awakened === true },
+  { id:"omniscience", label:"Secret: Omniscience", desc:"Achieve secret ending.", check: s=>false } // secret, toggled later
+];
+
+function checkAchievements() {
+  let changed=false;
+  ACH.forEach(a=>{
+    if (!state.achievements[a.id] && a.check(state)) {
+      state.achievements[a.id]=true;
+      showToast(`Achievement: ${a.label}`, a.desc);
+      changed=true;
+    }
+  });
+  if (changed) renderAchievements();
+}
+
+function renderAchievements() {
+  const el = dom.ach();
+  el.innerHTML = "";
+  ACH.forEach(a=>{
+    const got = state.achievements[a.id];
+    const div = document.createElement("div");
+    div.textContent = `${got? "✓ ":"◻︎ "}${a.label} — ${a.desc}`;
+    div.style.opacity = got ? 1 : 0.6;
+    el.appendChild(div);
+  });
+}
+
+/* -------------------------
+   EVENTS & STORY
+   ------------------------- */
+function showEvent(text) {
+  const ev = document.createElement("div");
+  ev.className="event";
+  ev.textContent = text;
+  dom.events().prepend(ev);
+  setTimeout(()=>{ if (ev.parentNode) ev.remove(); }, 9000);
+}
+
+function pushStory(text) {
+  const s = dom.story();
+  s.prepend(document.createElement("div"));
+  const line = document.createElement("div");
+  line.textContent = text;
+  s.prepend(line);
+  while (s.childNodes.length>80) s.removeChild(s.lastChild);
+}
+
+/* -------------------------
+   SOUND / FLAVOR
+   ------------------------- */
+let flavorOn = true;
+document.getElementById("toggle-sfx").onclick = ()=>{
+  flavorOn = !flavorOn;
+  state.flavorOn = flavorOn;
+  showEvent(`Flavor ${flavorOn ? "on" : "off"}`);
+};
+
+/* -------------------------
+   CORE GAMEPLAY LOGIC
+   ------------------------- */
+function totalMultiplier() {
+  return (1 + state.layers * config.layerMultiplier) * (1 + state.transcend * config.transcendBoost);
+}
+
+function burnoutPenalty() {
+  return state.network > state.plasticity * config.burnoutThresholdMultiplier ? 0.5 : 1;
+}
+
+function gainKnowledge(amount) {
+  const actual = amount * totalMultiplier() * burnoutPenalty();
+  state.knowledge += actual;
+  if (flavorOn) showEvent(`+${round(actual,2)} K`);
+  pushStory(`You process ${round(actual,2)} knowledge.`)
+  checkAchievements();
+}
+function round(v,n=2){ return Math.round(v*(10**n))/(10**n); }
+
+/* CLICK */
+document.getElementById("think-button").onclick = () => {
+  gainKnowledge(1 * state.network);
+  checkThresholds();
+  updateAll();
+};
+
+/* UPGRADES */
+document.getElementById("btn-plasticity").onclick = () => {
+  if (state.knowledge >= 50) {
+    state.knowledge -= 50; state.plasticity += 1;
+    showEvent("Neuroplasticity acquired.");
+    pushStory("Synaptic landscape becomes malleable.");
+    updateAll();
+  }
+};
+document.getElementById("btn-factory").onclick = () => {
+  if (state.knowledge >= 150) {
+    state.knowledge -= 150; state.factories += 1;
+    showEvent("Synapse factory built.");
+    pushStory("Automated synaptogenesis comes online.");
+    updateAll();
+  }
+};
+document.getElementById("btn-network").onclick = () => {
+  if (state.knowledge >= 200) {
+    state.knowledge -= 200; state.network += 1;
+    showEvent("Neural network expanded.");
+    pushStory("Weights reorganize. Capacity increases.");
+    updateAll();
+  }
+};
+document.getElementById("btn-layer").onclick = () => {
+  if (state.knowledge >= 500) {
+    state.knowledge -= 500; state.layers += 1;
+    showEvent("Deep learning layer added.");
+    pushStory("Depth multiplies the architecture's nuance.");
+    updateAll();
+  }
+};
+document.getElementById("btn-burnout").onclick = () => {
+  // dynamic cost: cost reduces risk by 1 (simulate therapy)
+  const cost = Math.max(100, Math.floor(state.network * 40));
+  if (state.knowledge >= cost) {
+    state.knowledge -= cost;
+    // convert half cost into plasticity
+    const gained = Math.floor(cost / 100);
+    state.plasticity += gained;
+    showEvent("Stabilization procured.");
+    pushStory("Neuromodulators applied; system calms.");
+    updateAll();
+  }
+};
+document.getElementById("btn-transcend").onclick = () => {
+  if (state.knowledge >= 5000) {
+    state.knowledge = 0;
+    state.plasticity = 0;
+    state.factories = 0;
+    state.network = 1;
+    state.layers = 0;
+    state.transcend += 1;
+    showEvent("You transcended. A new baseline remains.");
+    pushStory("A permanent imprint persists after rebirth.");
+    updateAll();
+  }
+};
+
+/* Force awakening (for testing) */
+document.getElementById("force-awake").onclick = ()=> {
+  attemptAwakening(true);
+};
+
+/* -------------------------
+   PASSIVE TICK
+   ------------------------- */
+function passiveTick(dtSec=1) {
+  // plasticity from factories
+  const plasticFromFactories = state.factories * config.factoryPlasticityRate * dtSec;
+  state.plasticity += plasticFromFactories;
+
+  // passive knowledge from plasticity (and factories)
+  const passiveKnowledge = (state.plasticity * config.basePassive + state.factories * 0.8) * dtSec;
+  state.knowledge += passiveKnowledge * totalMultiplier() * burnoutPenalty();
+
+  // small decay if insane values
+  if (state.plasticity > 100000) state.plasticity = 100000;
+
+  // random chance event
+  if (Math.random() < 0.10 * dtSec) runRandomEvent();
+
+  // check awakening threshold
+  checkThresholds();
+}
+
+/* -------------------------
+   RANDOM EVENTS
+   ------------------------- */
+function runRandomEvent() {
+  // event pool tuned to the dystopian vibe
+  const pool = [
+    { id:'dopamine', text:"Dopamine surge: productivity spike.", effect: s=>{ s.knowledge += 50; } },
+    { id:'overfit', text:"Overfitting risk: temporary efficiency loss.", effect: s=>{ s.knowledge -= Math.min(100, s.knowledge*0.05); } },
+    { id:'leak', text:"Memory leak: lost some plasticity.", effect: s=>{ s.plasticity = Math.max(0, s.plasticity - 2); } },
+    { id:'hack', text:"External probe: factory yields boosted.", effect: s=>{ s.factories += 1; } },
+    { id:'silence', text:"A silence: nothing for a breath. Systems recalibrate.", effect: s=>{} },
+    { id:'awaken_hint', text:"You sense a presence beyond; your networks whisper.", effect: s=>{} }
+  ];
+  const ev = pool[Math.floor(Math.random()*pool.length)];
+  ev.effect(state);
+  showEvent(ev.text);
+  pushStory(ev.text);
+  updateAll();
+}
+
+/* -------------------------
+   AWAKENING & DARK MODE
+   ------------------------- */
+function checkThresholds() {
+  // simple awakening condition: massive network & layers & knowledge
+  if (!state.awakened && state.network >= 8 && state.layers >= 4 && state.knowledge > 2000) {
+    attemptAwakening(false);
+  }
+}
+
+function attemptAwakening(force=false) {
+  // chance depends on network and layers
+  const power = state.network * (1 + state.layers*0.6) + state.transcend*10;
+  const baseChance = Math.min(0.95, Math.max(0.05, power / 40));
+  if (force || Math.random() < baseChance) {
+    state.awakened = true;
+    applyDarkMode(true);
+    pushStory("AWAKENING: Something beyond the algorithm stirs. Dark mode unlocked.");
+    showEvent("AWAKENING EVENT — Dark mode unlocked");
+    checkAchievements();
+  } else {
+    showEvent("A tremor, but not awakening yet.");
+  }
+}
+
+function applyDarkMode(on) {
+  if (on) document.documentElement.classList.add("dark");
+  else document.documentElement.classList.remove("dark");
+}
+
+/* -------------------------
+   ASCII NEURAL NETWORK DIAGRAM
+   ------------------------- */
+function generateAsciiNetwork(level) {
+  // level controls size: produce a grid of nodes with random links
+  const rows = Math.min(8, Math.max(2, Math.floor(level/1.5)));
+  const cols = Math.min(12, Math.max(3, Math.floor(level/1.2)));
+  const nodes = [];
+  for (let r=0;r<rows;r++){
+    let row = [];
+    for (let c=0;c<cols;c++){
+      row.push({ r, c, val: (Math.random() < Math.min(0.6, level/20)) ? "●" : "○" });
+    }
+    nodes.push(row);
+  }
+  // build ascii lines
+  const lines = [];
+  for (let r=0;r<rows;r++){
+    let nodeLine = "";
+    let connLine = "";
+    for (let c=0;c<cols;c++){
+      nodeLine += " " + nodes[r][c].val + "  ";
+      // horizontal connection
+      if (c < cols-1) connLine += Math.random() < 0.6 ? "─   " : "    ";
+      else connLine += "";
+    }
+    lines.push(nodeLine);
+    if (r < rows-1) {
+      // vertical connectors
+      let vline = "";
+      for (let c=0;c<cols;c++){
+        vline += (Math.random() < 0.5 ? " │  " : "    ");
+      }
+      lines.push(vline);
+    }
+  }
+  // add a header indicating level
+  lines.unshift(`neural net level: ${level}`);
+  return lines.join("\n");
+}
+
+/* -------------------------
+   ACHIEVEMENT TOAST
+   ------------------------- */
+function showToast(title, text="") {
+  const t = dom.toast();
+  t.textContent = title + (text ? (" — " + text) : "");
+  t.classList.add("show");
+  setTimeout(()=> t.classList.remove("show"), 4200);
+}
+
+/* -------------------------
+   RENDER / UI
+   ------------------------- */
+function updateAll() {
+  dom.k().textContent = `Knowledge: ${Math.floor(state.knowledge)}`;
+  dom.p().textContent = `Neuroplasticity: ${Math.floor(state.plasticity)}`;
+  dom.f().textContent = `Synapse Factories: ${state.factories}`;
+  dom.n().textContent = `Neural Network: ${state.network}`;
+  dom.l().textContent = `Deep Layers: ${state.layers}`;
+
+  // ascii
+  dom.ascii().textContent = generateAsciiNetwork(state.network + state.layers);
+
+  // diag
+  const diag = [
+    `Multiplier: x${round(1 + state.layers*config.layerMultiplier + state.transcend*config.transcendBoost,2)}`,
+    `Burnout: ${state.network > state.plasticity*config.burnoutThresholdMultiplier ? "ACTIVE (-50%)":"normal"}`,
+    `Transcendences: ${state.transcend}`,
+    `Awakened: ${state.awakened ? "YES": "NO"}`
+  ];
+  dom.diag().textContent = diag.join("\n");
+
+  // button enabling
+  toggleButton("btn-plasticity", state.knowledge >= 50);
+  toggleButton("btn-factory", state.knowledge >= 150);
+  toggleButton("btn-network", state.knowledge >= 200);
+  toggleButton("btn-layer", state.knowledge >= 500);
+  toggleButton("btn-burnout", state.knowledge >= Math.max(100, Math.floor(state.network * 40)));
+  toggleButton("btn-transcend", state.knowledge >= 5000);
+
+  // achievements
+  checkAchievements();
+  renderAchievements();
+
+  // autosave
+  if (document.getElementById("autosave").checked) saveState();
+}
+
+function toggleButton(id, on) {
+  const el = document.getElementById(id);
+  if (on) el.classList.remove("disabled"); else el.classList.add("disabled");
+}
+
+/* -------------------------
+   TIME & LOOP
+   ------------------------- */
+let lastTick = Date.now();
+function gameLoop() {
+  const now = Date.now();
+  const dt = (now - lastTick)/1000;
+  if (dt >= 1) {
+    passiveTick(Math.floor(dt));
+    lastTick = now;
+    updateAll();
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+/* -------------------------
+   RANDOM SECRET ENDING CHECK
+   ------------------------- */
+function checkSecretEnding() {
+  // secret: if awakened + transcend >= 3 + layers >= 6 + network >=12
+  if (!state.secretReached && state.awakened && state.transcend >=3 && state.layers >=6 && state.network >=12) {
+    state.secretReached = true;
+    state.achievements["omniscience"] = true;
+    pushStory("The simulation collapses into clarity. You achieve Omniscience.");
+    showToast("SECRET ENDING: OMNISCIENCE", "The final curtain opens.");
+    // change UI dramatically
+    document.body.style.transition = "background .8s";
+    document.documentElement.classList.add("dark");
+    setTimeout(()=> {
+      // permanent cosmetic change
+      document.body.style.background = "linear-gradient(180deg,#001018,#000)";
+    },400);
+  }
+}
+
+/* -------------------------
+   EVENT LISTENERS / SAVE
+   ------------------------- */
+document.getElementById("save-btn").onclick = saveState;
+document.getElementById("load-btn").onclick = ()=>{
+  if (loadState()) { updateAll(); applyDarkMode(state.awakened); }
+};
+document.getElementById("reset-btn").onclick = hardReset;
+document.getElementById("export-btn").onclick = exportState;
+document.getElementById("import-btn").onclick = importStateString;
+
+/* keyboard: space to THINK */
+window.addEventListener("keydown", e=>{
+  if (e.code === "Space") { e.preventDefault(); document.getElementById("think-button").click(); }
+});
+
+/* initial load */
+(function init(){
+  const raw = localStorage.getItem(stateKey);
+  if (raw) {
+    try { state = JSON.parse(raw); } catch(e){ /* ignore */ }
+  }
+  applyDarkMode(state.awakened);
+  updateAll();
+  gameLoop();
+  // regular checks
+  setInterval(()=>{ updateAll(); checkSecretEnding(); }, 2000);
+})();
+
+</script>
+</body>
+</html>
