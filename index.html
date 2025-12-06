@@ -5,47 +5,48 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <style>
-      body {
+      html, body {
         margin: 0;
-        min-height: 100vh; /* allows page to grow */
+        height: 100%;
+        font-family: "Times New Roman", serif;
+        color: white;
+        text-shadow: 1px 1px 3px black;
+        background-image: url('centerimage.JPG');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      .container {
         display: flex;
         flex-direction: column;
-        justify-content: flex-start; /* move content toward top */
-        padding-top: 150px;          /* adjust exact height */
+        justify-content: center; /* centers content vertically */
         align-items: center;     /* horizontal centering */
+        height: 100%;
         text-align: center;
-        font-family: "Times New Roman", serif;
-        /* Full-page background image */
-        background-image: url('centerimage.JPG');
-        background-size: cover;       /* fill entire page */
-        background-position: center;  /* center image */
-        background-repeat: no-repeat; /* no tiling */
-        color: white;                 /* text color to stand out */
-        text-shadow: 1px 1px 3px black; /* optional: make text readable */
       }
       h1 {
         font-style: italic;
-        margin: 0;
-        font-size: 3em; /* adjust size as needed */
+        font-size: 3em;
+        margin: 0 0 20px 0;
       }
       p {
-        margin: 10px 0 0 0;
         font-size: 1.5em;
+        margin: 0;
       }
-        .copyright {
+      .copyright {
         position: absolute;
         bottom: 10px;
         left: 10px;
         font-size: 0.8em;
-        color: white;
         text-shadow: 1px 1px 2px black;
       }
     </style>
   </head>
   <body>
-    <h1>LAURENT HÉROUX</h1>
-    <p>Personal website, more info coming</p>
+    <div class="container">
+      <h1>LAURENT HÉROUX</h1>
+      <p>Personal website, more info coming</p>
+    </div>
     <div class="copyright">© Laurent Héroux 2025</div>
   </body>
 </html>
-
