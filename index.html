@@ -9,12 +9,10 @@
       margin: 0;
       height: 100%;
       font-family: "Times New Roman", serif;
-      color: black;
-      background-color: white;
+      color: white;
+      text-shadow: 0px 0px 0px black;
       position: relative;
-      text-transform: uppercase; /* EVERYTHING IN ALL CAPS */
     }
-
     .container {
       display: flex;
       flex-direction: column;
@@ -22,60 +20,52 @@
       align-items: center;
       height: 100%;
       text-align: center;
-      gap: 25px;
     }
-
     h1 {
       font-style: italic;
       font-size: 3em;
+      margin: 0px 0 20px 0;
+    }
+    p.top-text {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5em;
       margin: 0;
     }
-
-    img {
-      height: auto;
-      display: block;
-    }
-
-    .time-text {
-      font-size: 1.4em;
-      margin: 0;
-      margin-top: 5px;
-    }
-
     .copyright {
       position: absolute;
       bottom: 10px;
       left: 10px;
       font-size: 0.8em;
+      text-shadow: 0px 0px 0px black;
     }
   </style>
 </head>
 <body>
+  <!-- top text now shows live Montreal time -->
+  <p class="top-text" id="montreal-time">Time in Montréal - </p>
 
   <div class="container">
-    <h1>LAURENT HÉROUX</h1>
-
-    <img id="main-image" alt="image">
-
-    <p class="time-text" id="montreal-time"></p>
+    <h1>laurent héroux</h1>
   </div>
-
-  <div class="copyright">© LAURENT HÉROUX 2025</div>
+  <div class="copyright">© laurent héroux 2025</div>
 
   <script>
-    // images
-    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG'];
+    // --- List of images ---
+    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
 
-    // choose which image
-    const selectedImageIndex = 2;
+    // --- Choose which one to display (0 for first, 1 for second, etc.) ---
+    const selectedImageIndex = 4; 
 
-    // --- adjust image size ---
-    const imageSizePercent = 40;
-    const imgElement = document.getElementById('main-image');
-    imgElement.src = images[selectedImageIndex];
-    imgElement.style.maxWidth = imageSizePercent + "%";
+    // --- Apply the selected image as background ---
+    document.body.style.backgroundImage = `url('${images[selectedImageIndex]}')`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundRepeat = 'no-repeat';
 
-    // live montreal time (AM / PM uppercase)
+    // --- Live Montreal time ---
     function updateMontrealTime() {
       const now = new Date();
       const options = {
@@ -85,19 +75,12 @@
         second: '2-digit',
         hour12: true
       };
-      let timeString = now.toLocaleTimeString('en-CA', options);
-
-      // force AM/PM uppercase
-      timeString = timeString.replace('a.m.', 'AM').replace('p.m.', 'PM');
-      timeString = timeString.replace('AM', 'AM').replace('PM', 'PM'); // clean reinforcement
-
-      document.getElementById('montreal-time').textContent =
-        `TIME IN MONTRÉAL - ${timeString}`;
+      const timeString = now.toLocaleTimeString('en-CA', options);
+      document.getElementById('montreal-time').textContent = `time in montréal - ${timeString}`;
     }
 
-    updateMontrealTime();
-    setInterval(updateMontrealTime, 1000);
+    updateMontrealTime(); // initial call
+    setInterval(updateMontrealTime, 1000); // update every second
   </script>
-
 </body>
 </html>
