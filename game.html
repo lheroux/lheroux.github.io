@@ -5,6 +5,10 @@
   <title>think</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       margin: 0;
       padding: 20px;
@@ -17,9 +21,10 @@
     
     #game-wrapper {
       display: flex;
-      max-width: 1200px;
+      gap: 80px;
+      max-width: 1100px;
       margin: 0 auto;
-      gap: 60px;
+      justify-content: center;
     }
     
     #main-content {
@@ -28,8 +33,7 @@
     }
     
     #story-container {
-      max-width: 300px;
-      padding-top: 0;
+      width: 280px;
       flex-shrink: 0;
     }
     
@@ -123,20 +127,6 @@
     
     <div id="story-container"></div>
   </div>
-  
-  <div id="upgrade-container" style="margin-top: 15px;"></div>
-  
-  <div id="project-container" style="margin-top: 15px;"></div>
-  
-  <div id="meditation-container" class="hidden" style="margin-top: 15px;"></div>
-  
-  <div id="stats-container" class="hidden" style="margin-top: 20px;">
-    <div class="line">knowledge per click: <span id="click-power">1</span></div>
-    <div class="line">knowledge per second: <span id="kps">0</span></div>
-    <div class="line">total thoughts: <span id="total-clicks">0</span></div>
-  </div>
-  
-  <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
   
   <a class="home-link" href="index.html">home</a>
 
