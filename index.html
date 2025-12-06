@@ -33,6 +33,7 @@
       transform: translateX(-50%);
       font-size: 1.5em;
       margin: 0;
+      cursor: pointer; /* needed so it can be clicked */
     }
     .copyright {
       position: absolute;
@@ -57,12 +58,11 @@
     .footer-links a:hover {
       text-decoration: underline;
     }
-
   </style>
 </head>
 <body>
 
-  <p class="top-text" id="montreal-time">Time in Montréal - </p>
+  <p class="top-text" id="montreal-time">time in Montréal - </p>
 
   <div class="container">
     <h1>laurent héroux</h1>
@@ -70,8 +70,8 @@
 
   <div class="copyright">© laurent héroux 2025</div>
 
-  <!-- links to subpages -->
-  <div class="footer-links">
+  <!-- footer links -->
+  <div class="footer-links" id="footer-links">
     <a href="about.html">about</a> –
     <a href="contact.html">contact</a> –
     <a href="portfolio.html">portfolio</a>
@@ -96,11 +96,29 @@
         hour12: true
       };
       const timeString = now.toLocaleTimeString('en-CA', options);
-      document.getElementById('montreal-time').textContent = `time in montréal - ${timeString}`;
+      document.getElementById('montreal-time').textContent =
+        `time in montréal - ${timeString}`;
     }
 
     updateMontrealTime();
     setInterval(updateMontrealTime, 1000);
+
+    /* --- secret 3-click unlock for GAME link --- */
+    let clickCount = 0;
+    const timeText = document.getElementById("montreal-time");
+
+    timeText.addEventListener("click", () => {
+      clickCount++;
+      if (clickCount === 3) {
+        const footer = document.getElementById("footer-links");
+        const gameLink = document.createElement("a");
+        gameLink.href = "game.html";
+        gameLink.textContent = "game";
+
+        footer.innerHTML += " – ";
+        footer.appendChild(gameLink);
+      }
+    });
   </script>
 
 </body>
