@@ -379,8 +379,79 @@ const PROJECTS = [
 // Initialize
 function init() {
   addStory('you are. you think. therefore...');
+  
+  // Load saved state if it exists
+  const saved = localStorage.getItem('thinkGameState');
+  if (saved) {
+    try {
+      const savedState = JSON.parse(saved);
+      // Calculate offline progress
+      const timeAway = Date.now() - savedState.lastSave;
+      const secondsAway = timeAway / 1000;
+      
+      // Restore state
+      Object.assign(state, savedState);
+      state.startTime = Date.now();
+      state.meditationStart = null;
+      state.meditationBonus = 1;
+      
+      // Calculate offline earnings
+      let passive = 0;
+      passive += state.plasticity * 0.1;
+      passive += state.synapses * 2;
+      passive += state.memory * 25;
+      passive += state.logic * 100;
+      passive += state.collective * 500;
+      
+      if (state.path === 'logic') passive *= 1.3;
+      if (state.path === 'creativity') passive *= 1.1;
+      if (state.path === 'intuition') passive *= 1.2;
+      if (state.phase >= 2) passive *= 2;
+      if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
+      
+      const offlineGain = passive * secondsAway;
+      
+      if (offlineGain > 0) {
+        state.knowledge += offlineGain;
+      }
+      
+      // Calculate offline insights and focus
+      if (state.creativity > 0) {
+        const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+        state.insights += insightRate * secondsAway;
+      }
+      
+      if (state.intuition > 0) {
+        const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+        state.focus += focusRate * secondsAway;
+      }
+      
+      if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+        state.wisdom += state.insights * 0.0001 * secondsAway;
+      }
+    } catch (e) {
+      console.error('Failed to load save:', e);
+    }
+  }
+  
   render();
   setInterval(gameLoop, 100);
+  
+  // Auto-save every 60 seconds
+  setInterval(saveGame, 60000);
+}
+
+// Save game
+function saveGame() {
+  try {
+    const saveState = {
+      ...state,
+      lastSave: Date.now()
+    };
+    localStorage.setItem('thinkGameState', JSON.stringify(saveState));
+  } catch (e) {
+    console.error('Failed to save:', e);
+  }
 }
 
 // Game loop
