@@ -11,10 +11,22 @@
       font-family: "Times New Roman", serif;
       background: #fff;
       color: #000;
-      max-width: 600px;
+      max-width: 1200px;
       margin: 0 auto;
       line-height: 1.6;
       font-size: 14px;
+      display: flex;
+      gap: 40px;
+    }
+    
+    #main-content {
+      flex: 1;
+      max-width: 600px;
+    }
+    
+    #story-container {
+      flex: 1;
+      max-width: 400px;
     }
     
     .clickable {
@@ -49,33 +61,62 @@
     .disabled:hover {
       text-decoration: none !important;
     }
+    
+    .home-link {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.9em;
+      text-decoration: none;
+      color: black;
+    }
+    
+    .home-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 
-  <div class="line">
-    <span class="clickable" id="think-button">think</span>
+  <div id="main-content">
+    <div class="line">
+      <span class="clickable" id="think-button">think</span>
+    </div>
+    
+    <div class="line" style="margin-top: 15px;">
+      knowledge: <span id="knowledge-value">0</span>
+    </div>
+    
+    <div class="line hidden" id="insight-display">
+      insights: <span id="insight-value">0</span>
+    </div>
+    
+    <div class="line hidden" id="focus-display">
+      focus: <span id="focus-value">0</span>
+    </div>
+    
+    <div class="line hidden" id="wisdom-display">
+      wisdom: <span id="wisdom-value">0</span>
+    </div>
+    
+    <div id="choice-container" style="margin-top: 15px;"></div>
+    
+    <div id="upgrade-container" style="margin-top: 15px;"></div>
+    
+    <div id="project-container" style="margin-top: 15px;"></div>
+    
+    <div id="meditation-container" class="hidden" style="margin-top: 15px;"></div>
+    
+    <div id="stats-container" class="hidden" style="margin-top: 20px;">
+      <div class="line">knowledge per click: <span id="click-power">1</span></div>
+      <div class="line">knowledge per second: <span id="kps">0</span></div>
+      <div class="line">total thoughts: <span id="total-clicks">0</span></div>
+    </div>
+    
+    <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
   </div>
   
-  <div class="line" style="margin-top: 15px;">
-    knowledge: <span id="knowledge-value">0</span>
-  </div>
-  
-  <div class="line hidden" id="insight-display">
-    insights: <span id="insight-value">0</span>
-  </div>
-  
-  <div class="line hidden" id="focus-display">
-    focus: <span id="focus-value">0</span>
-  </div>
-  
-  <div class="line hidden" id="wisdom-display">
-    wisdom: <span id="wisdom-value">0</span>
-  </div>
-  
-  <div id="story-container" style="margin-top: 15px;"></div>
-  
-  <div id="choice-container" style="margin-top: 15px;"></div>
+  <div id="story-container"></div>
   
   <div id="upgrade-container" style="margin-top: 15px;"></div>
   
@@ -90,6 +131,8 @@
   </div>
   
   <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
+  
+  <a class="home-link" href="index.html">home</a>
 
 <script>
 // Game state
@@ -459,10 +502,23 @@ function addStory(text) {
   line.style.fontStyle = 'italic';
   line.style.opacity = '0.7';
   line.textContent = text;
-  container.appendChild(line);
   
-  while (container.children.length > 3) {
-    container.removeChild(container.firstChild);
+  // Insert at the beginning (top) instead of appending
+  container.insertBefore(line, container.firstChild);
+  
+  // Fade messages after the 4th one
+  const messages = container.children;
+  for (let i = 0; i < messages.length; i++) {
+    if (i < 4) {
+      messages[i].style.opacity = '0.7';
+    } else {
+      messages[i].style.opacity = Math.max(0.1, 0.7 - (i - 3) * 0.15);
+    }
+  }
+  
+  // Keep maximum 8 messages
+  while (container.children.length > 8) {
+    container.removeChild(container.lastChild);
   }
 }
 
