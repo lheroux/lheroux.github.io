@@ -531,6 +531,43 @@ function loadGame() {
   if (urlParams.has('_reset')) {
     // Clean URL
     window.history.replaceState({}, '', window.location.pathname);
+    // Explicitly reset state to initial values
+    state = {
+      knowledge: 0,
+      insights: 0,
+      focus: 0,
+      wisdom: 0,
+      plasticity: 0,
+      neurons: 0,
+      synapses: 0,
+      pattern_recognition: 0,
+      memory: 0,
+      creativity: 0,
+      logic: 0,
+      intuition: 0,
+      collective: 0,
+      totalClicks: 0,
+      startTime: Date.now(),
+      meditationStart: null,
+      meditationBonus: 1,
+      phase: 1,
+      path: null,
+      enlightenments: 0,
+      projectsCompleted: {},
+      choicesMade: {},
+      storyShown: {},
+      gameEnded: false,
+      lastUpdate: Date.now(),
+      lastSave: Date.now(),
+      lastActiveTime: Date.now()
+    };
+    // Clear all display caches
+    lastDisplayValues = {};
+    lastChoicesHash = '';
+    lastProjectsHash = '';
+    lastUpgradesHash = '';
+    lastResourcesHash = '';
+    lastMeditationState = null;
     return; // Don't load saved game
   }
   
