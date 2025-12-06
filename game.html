@@ -2,129 +2,679 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>THINK — awakening</title>
+  <title>THINK</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     body {
       margin: 0;
       padding: 20px;
       font-family: "Times New Roman", serif;
-      background: white;
-      color: black;
-      max-width: 800px;
+      background: #f5f5f5;
+      color: #000;
+      max-width: 1000px;
       margin: 0 auto;
       line-height: 1.4;
+      font-size: 16px;
     }
-    h1 {
-      font-style: italic;
+    
+    .header {
       text-align: center;
-      margin: 20px 0;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ccc;
     }
-    #think-button {
-      font-size: 3em;
+    
+    .main-container {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 800px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .left-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .right-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      max-height: 600px;
+    }
+    
+    .think-button {
+      font-size: 2.5em;
+      text-align: center;
+      padding: 30px 0;
+      margin: 20px 0;
       cursor: pointer;
-      text-align: center;
-      margin: 40px 0;
       user-select: none;
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+      position: relative;
     }
-    #think-button:active {
-      transform: scale(0.98);
+    
+    .think-button:active {
+      background: #f0f0f0;
     }
-    #knowledge {
-      font-size: 1.5em;
-      text-align: center;
+    
+    .think-button::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -4px;
+      height: 2px;
+      background: #000;
+    }
+    
+    .resource-display {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
       margin: 20px 0;
-      opacity: 0;
-      transition: opacity 0.3s;
+      padding: 15px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
     }
+    
+    .resource {
+      text-align: center;
+      padding: 8px;
+    }
+    
+    .resource-value {
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+    
+    .resource-label {
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .upgrades {
+      margin-top: 30px;
+    }
+    
+    .upgrade-category {
+      margin-bottom: 25px;
+    }
+    
+    .category-title {
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .upgrade-btn {
+      display: block;
+      width: 100%;
+      padding: 12px 15px;
+      margin: 8px 0;
+      text-align: left;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: "Times New Roman", serif;
+      font-size: 16px;
+      position: relative;
+    }
+    
+    .upgrade-btn:hover {
+      background: #f8f8f8;
+      border-color: #888;
+    }
+    
+    .upgrade-btn:active {
+      background: #eee;
+    }
+    
+    .upgrade-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f5f5f5;
+    }
+    
+    .upgrade-btn.disabled:hover {
+      border-color: #bbb;
+      background: #f5f5f5;
+    }
+    
+    .upgrade-cost {
+      float: right;
+      font-weight: bold;
+      color: #0066cc;
+    }
+    
+    .upgrade-desc {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 3px;
+      display: none;
+    }
+    
+    .upgrade-btn:hover .upgrade-desc {
+      display: block;
+    }
+    
+    .upgrade-btn .tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      background: #333;
+      color: white;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      z-index: 1000;
+      display: none;
+      margin-bottom: 5px;
+    }
+    
+    .upgrade-btn:hover .tooltip {
+      display: block;
+    }
+    
+    .story-log {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      background: #fafafa;
+      font-size: 0.9em;
+    }
+    
+    .story-entry {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .story-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .controls {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #ccc;
+      text-align: center;
+    }
+    
+    .controls button {
+      margin: 0 5px;
+      padding: 8px 15px;
+      background: #fff;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: "Times New Roman", serif;
+    }
+    
+    .controls button:hover {
+      background: #f5f5f5;
+    }
+    
+    .progress-bar {
+      height: 20px;
+      background: #eee;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #4CAF50;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    
     .hidden {
       display: none;
     }
-    .upgrade {
-      margin: 10px 0;
-      padding: 8px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      opacity: 0;
-      animation: fadeIn 0.5s forwards;
+    
+    .unlocked {
+      animation: unlockPulse 0.5s;
     }
-    .upgrade:active {
-      background: #f0f0f0;
-    }
-    .disabled {
-      opacity: 0.3;
-      cursor: default;
-    }
-    #story {
-      margin-top: 30px;
-      padding: 15px;
-      border-top: 1px solid #ccc;
-      font-size: 0.9em;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .story-entry {
-      margin-bottom: 8px;
-      opacity: 0;
-      animation: fadeIn 0.5s forwards;
-    }
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
-    .controls {
-      margin-top: 20px;
-      text-align: center;
-    }
-    button {
-      font-family: "Times New Roman", serif;
-      padding: 5px 10px;
-      margin: 0 5px;
-      background: white;
-      border: 1px solid #ccc;
-      cursor: pointer;
+    
+    @keyframes unlockPulse {
+      0% { background-color: #fff; }
+      50% { background-color: #e8f4e8; }
+      100% { background-color: #fff; }
     }
   </style>
 </head>
 <body>
 
-  <h1>THINK</h1>
+  <div class="header">
+    <div style="font-size: 1.5em; margin-bottom: 5px;">Cognitive Development</div>
+    <div style="color: #666; font-size: 0.9em;">Click THINK to generate knowledge. Expand your mind.</div>
+  </div>
   
-  <div id="think-button">THINK</div>
-  
-  <div id="knowledge"></div>
-  
-  <div id="upgrades"></div>
-  
-  <div id="story"></div>
-  
-  <div class="controls">
-    <button id="save">Save</button>
-    <button id="load">Load</button>
-    <button id="reset">Reset</button>
+  <div class="main-container">
+    <div class="left-panel">
+      <div class="think-button" id="think-button" title="Click to think. Base production: 1 knowledge per click">
+        THINK
+      </div>
+      
+      <div class="resource-display">
+        <div class="resource">
+          <div class="resource-value" id="knowledge-value">0</div>
+          <div class="resource-label">Knowledge</div>
+        </div>
+        <div class="resource hidden" id="plasticity-resource">
+          <div class="resource-value" id="plasticity-value">0</div>
+          <div class="resource-label">Neuroplasticity</div>
+        </div>
+        <div class="resource hidden" id="factories-resource">
+          <div class="resource-value" id="factories-value">0</div>
+          <div class="resource-label">Synapse Factories</div>
+        </div>
+        <div class="resource hidden" id="network-resource">
+          <div class="resource-value" id="network-value">1</div>
+          <div class="resource-label">Neural Network</div>
+        </div>
+      </div>
+      
+      <div class="progress-bar" id="next-upgrade-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      
+      <div class="upgrades">
+        <div id="upgrade-container"></div>
+      </div>
+    </div>
+    
+    <div class="right-panel">
+      <div style="font-weight: bold; margin-bottom: 10px;">Cognitive Log</div>
+      <div class="story-log" id="story-log"></div>
+      
+      <div style="margin-top: 20px; font-weight: bold; margin-bottom: 10px;">Statistics</div>
+      <div id="stats" style="font-size: 0.9em;">
+        <div>Knowledge per click: <span id="click-power">1</span></div>
+        <div>Knowledge per second: <span id="kps">0</span></div>
+        <div>Total thoughts: <span id="total-clicks">0</span></div>
+        <div>Time thinking: <span id="time-active">0s</span></div>
+      </div>
+      
+      <div class="controls">
+        <button id="save-btn" title="Save your progress">Save</button>
+        <button id="load-btn" title="Load saved progress">Load</button>
+        <button id="reset-btn" title="Reset all progress">Reset</button>
+        <button id="export-btn" title="Export save data">Export</button>
+        <button id="import-btn" title="Import save data">Import</button>
+      </div>
+    </div>
   </div>
 
 <script>
-// Simple state
+// Game state
 let state = {
   knowledge: 0,
   plasticity: 0,
   factories: 0,
   network: 1,
-  stages: {
-    showKnowledge: false,
-    showPlasticity: false,
-    showFactories: false,
-    showNetwork: false
-  }
+  totalClicks: 0,
+  startTime: Date.now(),
+  unlocked: {
+    plasticity: false,
+    factory: false,
+    network: false,
+    layer: false,
+    transcend: false
+  },
+  nextUpgrade: null
 };
+
+// Game constants
+const UPGRADES = [
+  {
+    id: 'plasticity',
+    name: 'Neuroplasticity',
+    cost: 50,
+    category: 'Foundation',
+    description: 'Increases passive knowledge generation by 0.2 per second',
+    effect: () => { state.plasticity += 1; },
+    showCondition: (s) => s.knowledge >= 10,
+    tooltip: 'Makes your mind more adaptable. Each point increases passive knowledge generation.'
+  },
+  {
+    id: 'factory',
+    name: 'Synapse Factory',
+    cost: 150,
+    category: 'Automation',
+    description: 'Automatically produces 0.5 knowledge per second',
+    effect: () => { state.factories += 1; },
+    showCondition: (s) => s.knowledge >= 50,
+    tooltip: 'Builds automatic thought generators. Each factory produces knowledge continuously.'
+  },
+  {
+    id: 'network',
+    name: 'Neural Network',
+    cost: 200,
+    category: 'Amplification',
+    description: 'Increases THINK click power by 1',
+    effect: () => { state.network += 1; },
+    showCondition: (s) => s.knowledge >= 100,
+    tooltip: 'Expands your cognitive capacity. Each level increases knowledge per click.'
+  },
+  {
+    id: 'layer',
+    name: 'Deep Layer',
+    cost: 500,
+    category: 'Amplification',
+    description: 'Multiplies all knowledge generation by 1.5x',
+    effect: () => { 
+      state.layers = (state.layers || 0) + 1;
+      state.unlocked.layer = true;
+    },
+    showCondition: (s) => s.knowledge >= 500,
+    tooltip: 'Adds depth to your thinking. Each layer provides a multiplicative bonus.'
+  },
+  {
+    id: 'transcend',
+    name: 'Transcend',
+    cost: 5000,
+    category: 'Ascension',
+    description: 'Reset everything for a permanent 2x multiplier',
+    effect: () => {
+      state.transcend = (state.transcend || 0) + 1;
+      state.knowledge = 0;
+      state.plasticity = 0;
+      state.factories = 0;
+      state.network = 1;
+      state.layers = 0;
+      addStory("You transcend your current form. All is reset, but wisdom remains.");
+    },
+    showCondition: (s) => s.knowledge >= 5000,
+    tooltip: 'Ascend to a higher state of consciousness. Reset progress for permanent bonus.'
+  }
+];
 
 // DOM elements
 const thinkButton = document.getElementById('think-button');
-const knowledgeEl = document.getElementById('knowledge');
-const upgradesEl = document.getElementById('upgrades');
-const storyEl = document.getElementById('story');
+const storyLog = document.getElementById('story-log');
 
-// Save/load
+// Initialize
+function init() {
+  loadGame();
+  render();
+  updateProgressBar();
+  
+  // Start game loop
+  setInterval(gameLoop, 1000);
+  
+  // Add initial story
+  addStory("Consciousness emerges. Click THINK to begin.");
+}
+
+// Game loop
+function gameLoop() {
+  // Calculate passive generation
+  let passive = 0;
+  
+  // Base passive from plasticity
+  passive += state.plasticity * 0.2;
+  
+  // Factories produce knowledge
+  passive += state.factories * 0.5;
+  
+  // Apply layers multiplier
+  if (state.layers) {
+    passive *= Math.pow(1.5, state.layers);
+  }
+  
+  // Apply transcend multiplier
+  if (state.transcend) {
+    passive *= Math.pow(2, state.transcend);
+  }
+  
+  // Add passive knowledge
+  if (passive > 0) {
+    state.knowledge += passive;
+  }
+  
+  // Update display
+  updateResourceDisplay();
+  updateStats();
+  updateUpgrades();
+  updateProgressBar();
+}
+
+// Click handler
+thinkButton.onclick = () => {
+  let gain = state.network;
+  
+  // Apply layers multiplier
+  if (state.layers) {
+    gain *= Math.pow(1.5, state.layers);
+  }
+  
+  // Apply transcend multiplier
+  if (state.transcend) {
+    gain *= Math.pow(2, state.transcend);
+  }
+  
+  state.knowledge += gain;
+  state.totalClicks++;
+  
+  // First click story
+  if (state.totalClicks === 1) {
+    addStory("First thought. Knowledge: " + gain.toFixed(1));
+  }
+  
+  // Check for unlocks
+  checkUnlocks();
+  
+  // Update display
+  updateResourceDisplay();
+  updateStats();
+  updateUpgrades();
+  updateProgressBar();
+  
+  // Animation
+  thinkButton.classList.add('unlocked');
+  setTimeout(() => thinkButton.classList.remove('unlocked'), 300);
+};
+
+// Check what should be unlocked
+function checkUnlocks() {
+  UPGRADES.forEach(upgrade => {
+    if (!state.unlocked[upgrade.id] && upgrade.showCondition(state)) {
+      state.unlocked[upgrade.id] = true;
+      
+      // Show resource display if needed
+      if (upgrade.id === 'plasticity') {
+        document.getElementById('plasticity-resource').classList.remove('hidden');
+      }
+      if (upgrade.id === 'factory') {
+        document.getElementById('factories-resource').classList.remove('hidden');
+      }
+      if (upgrade.id === 'network') {
+        document.getElementById('network-resource').classList.remove('hidden');
+      }
+      
+      addStory("Unlocked: " + upgrade.name);
+    }
+  });
+}
+
+// Update resource display
+function updateResourceDisplay() {
+  document.getElementById('knowledge-value').textContent = Math.floor(state.knowledge);
+  
+  if (state.plasticity > 0) {
+    document.getElementById('plasticity-value').textContent = state.plasticity;
+  }
+  if (state.factories > 0) {
+    document.getElementById('factories-value').textContent = state.factories;
+  }
+  if (state.network > 1) {
+    document.getElementById('network-value').textContent = state.network;
+  }
+}
+
+// Update statistics
+function updateStats() {
+  // Calculate KPS
+  let kps = state.plasticity * 0.2 + state.factories * 0.5;
+  if (state.layers) kps *= Math.pow(1.5, state.layers);
+  if (state.transcend) kps *= Math.pow(2, state.transcend);
+  
+  // Calculate click power
+  let clickPower = state.network;
+  if (state.layers) clickPower *= Math.pow(1.5, state.layers);
+  if (state.transcend) clickPower *= Math.pow(2, state.transcend);
+  
+  document.getElementById('kps').textContent = kps.toFixed(1);
+  document.getElementById('click-power').textContent = clickPower.toFixed(1);
+  document.getElementById('total-clicks').textContent = state.totalClicks;
+  
+  const timeActive = Math.floor((Date.now() - state.startTime) / 1000);
+  document.getElementById('time-active').textContent = timeActive + 's';
+}
+
+// Update upgrades display
+function updateUpgrades() {
+  const container = document.getElementById('upgrade-container');
+  container.innerHTML = '';
+  
+  // Group upgrades by category
+  const categories = {};
+  UPGRADES.forEach(upgrade => {
+    if (!state.unlocked[upgrade.id] && !upgrade.showCondition(state)) {
+      return;
+    }
+    
+    if (!categories[upgrade.category]) {
+      categories[upgrade.category] = [];
+    }
+    categories[upgrade.category].push(upgrade);
+  });
+  
+  // Create UI for each category
+  Object.keys(categories).forEach(category => {
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'upgrade-category';
+    
+    const title = document.createElement('div');
+    title.className = 'category-title';
+    title.textContent = category;
+    categoryDiv.appendChild(title);
+    
+    categories[category].forEach(upgrade => {
+      const btn = document.createElement('button');
+      btn.className = state.knowledge >= upgrade.cost ? 'upgrade-btn' : 'upgrade-btn disabled';
+      btn.id = `upgrade-${upgrade.id}`;
+      btn.title = upgrade.tooltip;
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = upgrade.name;
+      
+      const costSpan = document.createElement('span');
+      costSpan.className = 'upgrade-cost';
+      costSpan.textContent = upgrade.cost + ' K';
+      
+      const descSpan = document.createElement('span');
+      descSpan.className = 'upgrade-desc';
+      descSpan.textContent = upgrade.description;
+      
+      btn.appendChild(nameSpan);
+      btn.appendChild(costSpan);
+      btn.appendChild(descSpan);
+      
+      // Add tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'tooltip';
+      tooltip.textContent = upgrade.tooltip;
+      btn.appendChild(tooltip);
+      
+      // Click handler
+      if (state.knowledge >= upgrade.cost) {
+        btn.onclick = () => {
+          state.knowledge -= upgrade.cost;
+          upgrade.effect();
+          
+          // Update display
+          updateResourceDisplay();
+          updateStats();
+          updateUpgrades();
+          updateProgressBar();
+          
+          addStory("Acquired: " + upgrade.name);
+          
+          // Animation
+          btn.classList.add('unlocked');
+          setTimeout(() => btn.classList.remove('unlocked'), 300);
+        };
+      }
+      
+      categoryDiv.appendChild(btn);
+    });
+    
+    container.appendChild(categoryDiv);
+  });
+}
+
+// Update progress bar
+function updateProgressBar() {
+  // Find the next affordable upgrade
+  let nextUpgrade = null;
+  let minCost = Infinity;
+  
+  UPGRADES.forEach(upgrade => {
+    if (state.unlocked[upgrade.id] || upgrade.showCondition(state)) {
+      if (state.knowledge < upgrade.cost && upgrade.cost < minCost) {
+        minCost = upgrade.cost;
+        nextUpgrade = upgrade;
+      }
+    }
+  });
+  
+  const progressBar = document.getElementById('progress-fill');
+  if (nextUpgrade) {
+    const progress = Math.min(100, (state.knowledge / nextUpgrade.cost) * 100);
+    progressBar.style.width = progress + '%';
+    document.getElementById('next-upgrade-bar').title = `Progress toward ${nextUpgrade.name}: ${Math.floor(progress)}%`;
+  } else {
+    progressBar.style.width = '100%';
+    document.getElementById('next-upgrade-bar').title = 'All current upgrades purchased';
+  }
+}
+
+// Story system
+function addStory(text) {
+  const entry = document.createElement('div');
+  entry.className = 'story-entry';
+  
+  const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  entry.textContent = `[${time}] ${text}`;
+  
+  storyLog.prepend(entry);
+  
+  // Keep only last 20 entries
+  while (storyLog.children.length > 20) {
+    storyLog.removeChild(storyLog.lastChild);
+  }
+}
+
+// Save/load system
 function saveGame() {
   localStorage.setItem('think_save', JSON.stringify(state));
   addStory("Progress saved.");
@@ -134,8 +684,28 @@ function loadGame() {
   const saved = localStorage.getItem('think_save');
   if (saved) {
     state = JSON.parse(saved);
-    updateDisplay();
     addStory("Progress loaded.");
+  }
+}
+
+function exportGame() {
+  const data = btoa(JSON.stringify(state));
+  prompt("Copy this save code:", data);
+}
+
+function importGame() {
+  const code = prompt("Paste your save code:");
+  if (code) {
+    try {
+      state = JSON.parse(atob(code));
+      addStory("Game imported.");
+      updateResourceDisplay();
+      updateStats();
+      updateUpgrades();
+      updateProgressBar();
+    } catch (e) {
+      alert("Invalid save code");
+    }
   }
 }
 
@@ -146,184 +716,42 @@ function resetGame() {
       plasticity: 0,
       factories: 0,
       network: 1,
-      stages: {
-        showKnowledge: false,
-        showPlasticity: false,
-        showFactories: false,
-        showNetwork: false
+      totalClicks: 0,
+      startTime: Date.now(),
+      unlocked: {
+        plasticity: false,
+        factory: false,
+        network: false,
+        layer: false,
+        transcend: false
       }
     };
     localStorage.removeItem('think_save');
-    upgradesEl.innerHTML = '';
-    storyEl.innerHTML = '';
-    updateDisplay();
-    addStory("A new beginning.");
+    addStory("Consciousness reset. A new beginning.");
+    updateResourceDisplay();
+    updateStats();
+    updateUpgrades();
+    updateProgressBar();
   }
 }
 
-// Story system
-function addStory(text) {
-  const entry = document.createElement('div');
-  entry.className = 'story-entry';
-  entry.textContent = text;
-  storyEl.prepend(entry);
-  
-  // Keep only last 20 entries
-  while (storyEl.children.length > 20) {
-    storyEl.removeChild(storyEl.lastChild);
-  }
-}
+// Event listeners
+document.getElementById('save-btn').onclick = saveGame;
+document.getElementById('load-btn').onclick = loadGame;
+document.getElementById('reset-btn').onclick = resetGame;
+document.getElementById('export-btn').onclick = exportGame;
+document.getElementById('import-btn').onclick = importGame;
 
-// Update display
-function updateDisplay() {
-  // Update knowledge display
-  if (state.knowledge > 0 || state.stages.showKnowledge) {
-    knowledgeEl.style.opacity = '1';
-    knowledgeEl.textContent = `Knowledge: ${Math.floor(state.knowledge)}`;
-    
-    // Unlock plasticity at 10 knowledge
-    if (state.knowledge >= 10 && !state.stages.showPlasticity) {
-      state.stages.showPlasticity = true;
-      unlockUpgrade('plasticity');
-      addStory("You sense your mind becoming more malleable. Neuroplasticity unlocked.");
-    }
-    
-    // Unlock factories at 50 knowledge
-    if (state.knowledge >= 50 && !state.stages.showFactories) {
-      state.stages.showFactories = true;
-      unlockUpgrade('factory');
-      addStory("Patterns emerge. You can automate thought. Synapse Factory unlocked.");
-    }
-    
-    // Unlock network at 100 knowledge
-    if (state.knowledge >= 100 && !state.stages.showNetwork) {
-      state.stages.showNetwork = true;
-      unlockUpgrade('network');
-      addStory("Connections multiply. Neural Network expansion unlocked.");
-    }
+// Keyboard shortcut
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    thinkButton.click();
   }
-  
-  // Update upgrade buttons
-  updateUpgrades();
-}
+});
 
-// Unlock new upgrade button
-function unlockUpgrade(type) {
-  let button = document.createElement('div');
-  button.className = 'upgrade';
-  
-  switch(type) {
-    case 'plasticity':
-      button.id = 'buy-plasticity';
-      button.textContent = `Buy Neuroplasticity (50 knowledge)`;
-      break;
-    case 'factory':
-      button.id = 'buy-factory';
-      button.textContent = `Build Synapse Factory (150 knowledge)`;
-      break;
-    case 'network':
-      button.id = 'buy-network';
-      button.textContent = `Expand Neural Network (200 knowledge)`;
-      break;
-  }
-  
-  upgradesEl.appendChild(button);
-  
-  // Add click handlers
-  if (type === 'plasticity') {
-    button.onclick = () => {
-      if (state.knowledge >= 50) {
-        state.knowledge -= 50;
-        state.plasticity += 1;
-        addStory("Your mind becomes more adaptable.");
-        updateDisplay();
-      }
-    };
-  }
-  
-  if (type === 'factory') {
-    button.onclick = () => {
-      if (state.knowledge >= 150) {
-        state.knowledge -= 150;
-        state.factories += 1;
-        addStory("A factory begins producing thoughts automatically.");
-        updateDisplay();
-      }
-    };
-  }
-  
-  if (type === 'network') {
-    button.onclick = () => {
-      if (state.knowledge >= 200) {
-        state.knowledge -= 200;
-        state.network += 1;
-        addStory("Your mental capacity expands.");
-        updateDisplay();
-      }
-    };
-  }
-}
-
-// Update upgrade button states
-function updateUpgrades() {
-  const plasticityBtn = document.getElementById('buy-plasticity');
-  const factoryBtn = document.getElementById('buy-factory');
-  const networkBtn = document.getElementById('buy-network');
-  
-  if (plasticityBtn) {
-    plasticityBtn.className = state.knowledge >= 50 ? 'upgrade' : 'upgrade disabled';
-  }
-  if (factoryBtn) {
-    factoryBtn.className = state.knowledge >= 150 ? 'upgrade' : 'upgrade disabled';
-  }
-  if (networkBtn) {
-    networkBtn.className = state.knowledge >= 200 ? 'upgrade' : 'upgrade disabled';
-  }
-}
-
-// Main click handler
-thinkButton.onclick = () => {
-  state.knowledge += state.network;
-  
-  // First click reveals knowledge counter
-  if (!state.stages.showKnowledge) {
-    state.stages.showKnowledge = true;
-    knowledgeEl.style.opacity = '1';
-    knowledgeEl.textContent = `Knowledge: ${Math.floor(state.knowledge)}`;
-    addStory("A thought forms. You are aware of your own thinking.");
-  }
-  
-  updateDisplay();
-};
-
-// Passive generation (simple, no complex tick system)
-setInterval(() => {
-  if (state.factories > 0) {
-    // Factories produce knowledge
-    const passiveGain = state.factories * 0.5;
-    state.knowledge += passiveGain;
-    
-    // Plasticity boosts passive gain
-    if (state.plasticity > 0) {
-      state.knowledge += state.plasticity * 0.1;
-    }
-    
-    updateDisplay();
-  }
-}, 1000); // Only updates once per second
-
-// Initialize
-document.getElementById('save').onclick = saveGame;
-document.getElementById('load').onclick = loadGame;
-document.getElementById('reset').onclick = resetGame;
-
-// Load if exists
-loadGame();
-
-// Add initial story
-setTimeout(() => {
-  addStory("You are aware. Click THINK to begin.");
-}, 500);
+// Initialize game
+init();
 </script>
 </body>
 </html>
