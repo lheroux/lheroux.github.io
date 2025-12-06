@@ -12,6 +12,7 @@
       color: black;
       background-color: white;
       position: relative;
+      text-transform: uppercase; /* EVERYTHING IN ALL CAPS */
     }
 
     .container {
@@ -28,7 +29,6 @@
       font-style: italic;
       font-size: 3em;
       margin: 0;
-      text-transform: lowercase;
     }
 
     img {
@@ -53,14 +53,14 @@
 <body>
 
   <div class="container">
-    <h1>laurent héroux</h1>
+    <h1>LAURENT HÉROUX</h1>
 
     <img id="main-image" alt="image">
 
     <p class="time-text" id="montreal-time"></p>
   </div>
 
-  <div class="copyright">© laurent héroux 2025</div>
+  <div class="copyright">© LAURENT HÉROUX 2025</div>
 
   <script>
     // images
@@ -69,15 +69,13 @@
     // choose which image
     const selectedImageIndex = 2;
 
-    // --- adjust image size here (percentage of screen width) ---
-    const imageSizePercent = 40; // change this (e.g., 20, 35, 50, 60)
-
-    // set centered <img>
+    // --- adjust image size ---
+    const imageSizePercent = 40;
     const imgElement = document.getElementById('main-image');
     imgElement.src = images[selectedImageIndex];
     imgElement.style.maxWidth = imageSizePercent + "%";
 
-    // live montreal time
+    // live montreal time (AM / PM uppercase)
     function updateMontrealTime() {
       const now = new Date();
       const options = {
@@ -87,9 +85,14 @@
         second: '2-digit',
         hour12: true
       };
-      const timeString = now.toLocaleTimeString('en-CA', options);
+      let timeString = now.toLocaleTimeString('en-CA', options);
+
+      // force AM/PM uppercase
+      timeString = timeString.replace('a.m.', 'AM').replace('p.m.', 'PM');
+      timeString = timeString.replace('AM', 'AM').replace('PM', 'PM'); // clean reinforcement
+
       document.getElementById('montreal-time').textContent =
-        `time in montréal - ${timeString}`;
+        `TIME IN MONTRÉAL - ${timeString}`;
     }
 
     updateMontrealTime();
