@@ -44,7 +44,9 @@
   </style>
 </head>
 <body>
-  <p class="top-text">Personal website, more info coming</p>
+  <!-- top text now shows live Montreal time -->
+  <p class="top-text" id="montreal-time">Time in Montréal - </p>
+
   <div class="container">
     <h1>LAURENT HÉROUX</h1>
   </div>
@@ -52,16 +54,33 @@
 
   <script>
     // --- List of images ---
-    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; // add as many as you want
+    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
 
     // --- Choose which one to display (0 for first, 1 for second, etc.) ---
-    const selectedImageIndex = 2; // change this number to rotate images
+    const selectedImageIndex = 2; 
 
     // --- Apply the selected image as background ---
     document.body.style.backgroundImage = `url('${images[selectedImageIndex]}')`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundRepeat = 'no-repeat';
+
+    // --- Live Montreal time ---
+    function updateMontrealTime() {
+      const now = new Date();
+      const options = {
+        timeZone: 'America/Toronto',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      };
+      const timeString = now.toLocaleTimeString('en-CA', options);
+      document.getElementById('montreal-time').textContent = `Time in Montréal - ${timeString}`;
+    }
+
+    updateMontrealTime(); // initial call
+    setInterval(updateMontrealTime, 1000); // update every second
   </script>
 </body>
 </html>
