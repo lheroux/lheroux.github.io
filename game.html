@@ -17,13 +17,13 @@
       font-size: 14px;
     }
     
-    .think-button {
+    .clickable {
       cursor: pointer;
       user-select: none;
       display: inline;
     }
     
-    .think-button:hover {
+    .clickable:hover {
       text-decoration: underline;
     }
     
@@ -34,130 +34,226 @@
     .hidden {
       display: none;
     }
+    
+    .disabled {
+      opacity: 0.4;
+      cursor: default !important;
+    }
+    
+    .disabled:hover {
+      text-decoration: none !important;
+    }
   </style>
 </head>
 <body>
 
   <div class="line">
-    <span class="think-button" id="think-button">think</span>
+    <span class="clickable" id="think-button">think</span>
   </div>
   
   <div class="line" style="margin-top: 15px;">
     knowledge: <span id="knowledge-value">0</span>
   </div>
   
+  <div class="line hidden" id="insight-display">
+    insights: <span id="insight-value">0</span>
+  </div>
+  
+  <div id="story-container" style="margin-top: 15px;"></div>
+  
   <div id="upgrade-container" style="margin-top: 15px;"></div>
+  
+  <div id="project-container" style="margin-top: 15px;"></div>
   
   <div id="stats-container" class="hidden" style="margin-top: 20px;">
     <div class="line">knowledge per click: <span id="click-power">1</span></div>
     <div class="line">knowledge per second: <span id="kps">0</span></div>
     <div class="line">total thoughts: <span id="total-clicks">0</span></div>
   </div>
+  
+  <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
 
 <script>
 // Game state
 let state = {
   knowledge: 0,
+  insights: 0,
   plasticity: 0,
   neurons: 0,
   synapses: 0,
-  cortex: 0,
-  networks: 0,
+  pattern_recognition: 0,
+  memory: 0,
+  creativity: 0,
+  collective: 0,
   totalClicks: 0,
-  startTime: Date.now()
+  startTime: Date.now(),
+  phase: 1,
+  projectsCompleted: {},
+  storyShown: {}
 };
 
-// Game constants
+// Story beats
+const STORIES = [
+  { at: 0, id: 'start', text: 'you are. you think. therefore...' },
+  { at: 10, id: 'awareness', text: 'awareness emerges from the void' },
+  { at: 50, id: 'plasticity', text: 'your mind begins to reshape itself' },
+  { at: 200, id: 'neurons', text: 'neural pathways form and strengthen' },
+  { at: 1000, id: 'patterns', text: 'you recognize patterns in the chaos' },
+  { at: 5000, id: 'memory', text: 'memory allows you to build upon the past' },
+  { at: 25000, id: 'creativity', text: 'creativity lets you imagine what does not yet exist' },
+  { at: 100000, id: 'collective', text: 'you sense others like you, thinking, growing' },
+  { at: 500000, id: 'network', text: 'minds connect, forming something greater' },
+  { at: 2000000, id: 'transcend', text: 'the boundary between self and other dissolves' }
+];
+
+// Upgrades
 const UPGRADES = [
   {
-    id: 'plasticity1',
+    id: 'plasticity',
     name: 'plasticity',
-    cost: 15,
+    baseCost: 15,
+    costMultiplier: 1.15,
     description: '+0.1 knowledge/sec',
     effect: () => { state.plasticity += 1; },
     showAt: 0
   },
   {
-    id: 'plasticity2',
-    name: 'plasticity',
-    cost: 100,
-    description: '+1 knowledge/sec',
-    effect: () => { state.plasticity += 10; },
-    showAt: 15
-  },
-  {
-    id: 'neuron1',
+    id: 'neuron',
     name: 'neuron',
-    cost: 500,
+    baseCost: 100,
+    costMultiplier: 1.12,
     description: '+0.5 knowledge/click',
     effect: () => { state.neurons += 1; },
-    showAt: 100
+    showAt: 50
   },
   {
-    id: 'synapse1',
+    id: 'synapse',
     name: 'synapse factory',
-    cost: 3000,
-    description: '+5 knowledge/sec',
+    baseCost: 1200,
+    costMultiplier: 1.14,
+    description: '+2 knowledge/sec',
     effect: () => { state.synapses += 1; },
     showAt: 500
   },
   {
-    id: 'cortex1',
-    name: 'cortex expansion',
-    cost: 10000,
-    description: '+2 knowledge/click',
-    effect: () => { state.cortex += 1; },
-    showAt: 3000
+    id: 'pattern_recognition',
+    name: 'pattern recognition',
+    baseCost: 8500,
+    costMultiplier: 1.16,
+    description: '+5 knowledge/click',
+    effect: () => { state.pattern_recognition += 1; },
+    showAt: 5000,
+    requiresProject: 'patterns'
   },
   {
-    id: 'plasticity3',
-    name: 'plasticity',
-    cost: 35000,
+    id: 'memory',
+    name: 'memory bank',
+    baseCost: 45000,
+    costMultiplier: 1.13,
     description: '+25 knowledge/sec',
-    effect: () => { state.plasticity += 250; },
-    showAt: 10000
+    effect: () => { state.memory += 1; },
+    showAt: 25000,
+    requiresProject: 'memory'
   },
   {
-    id: 'network1',
-    name: 'neural network',
-    cost: 100000,
-    description: '+50 knowledge/sec',
-    effect: () => { state.networks += 1; },
-    showAt: 35000
+    id: 'creativity',
+    name: 'creative engine',
+    baseCost: 250000,
+    costMultiplier: 1.18,
+    description: 'generates insights',
+    effect: () => { state.creativity += 1; },
+    showAt: 100000,
+    requiresProject: 'creativity'
   },
   {
-    id: 'neuron2',
-    name: 'neuron',
-    cost: 250000,
-    description: '+10 knowledge/click',
-    effect: () => { state.neurons += 20; },
-    showAt: 100000
+    id: 'collective',
+    name: 'collective node',
+    baseCost: 1500000,
+    costMultiplier: 1.20,
+    description: '+500 knowledge/sec',
+    effect: () => { state.collective += 1; },
+    showAt: 500000,
+    requiresProject: 'network'
+  }
+];
+
+// Projects
+const PROJECTS = [
+  {
+    id: 'patterns',
+    name: 'PATTERN ANALYSIS',
+    cost: 2500,
+    description: 'unlock pattern recognition capabilities',
+    showAt: 1000,
+    effect: () => { addStory('you can now see the patterns underlying reality'); }
   },
   {
-    id: 'synapse2',
-    name: 'synapse factory',
-    cost: 1000000,
-    description: '+100 knowledge/sec',
-    effect: () => { state.synapses += 20; },
-    showAt: 250000
+    id: 'memory',
+    name: 'MEMORY FORMATION',
+    cost: 15000,
+    description: 'develop long-term memory systems',
+    showAt: 10000,
+    effect: () => { addStory('the past is no longer lost to you'); }
   },
   {
-    id: 'cortex2',
-    name: 'cortex expansion',
-    cost: 5000000,
-    description: '+50 knowledge/click',
-    effect: () => { state.cortex += 25; },
-    showAt: 1000000
+    id: 'insights',
+    name: 'INSIGHT GENERATION',
+    cost: 50000,
+    description: 'unlock insights as a resource',
+    showAt: 30000,
+    effect: () => { 
+      document.getElementById('insight-display').classList.remove('hidden');
+      addStory('insights emerge from deep contemplation');
+    }
+  },
+  {
+    id: 'creativity',
+    name: 'CREATIVE SYNTHESIS',
+    cost: 150000,
+    description: 'combine concepts in novel ways',
+    showAt: 75000,
+    requiresProject: 'insights',
+    effect: () => { addStory('creation is no longer limited to what exists'); }
+  },
+  {
+    id: 'network',
+    name: 'NEURAL NETWORKING',
+    cost: 500000,
+    description: 'connect to other conscious entities',
+    showAt: 250000,
+    requiresProject: 'creativity',
+    effect: () => { 
+      state.phase = 2;
+      addStory('you are no longer alone in the void');
+    }
+  },
+  {
+    id: 'transcendence',
+    name: 'TRANSCENDENCE',
+    cost: 10000000,
+    costType: 'knowledge',
+    insightCost: 1000,
+    description: 'become something more',
+    showAt: 5000000,
+    requiresProject: 'network',
+    effect: () => { 
+      state.phase = 3;
+      addStory('boundaries dissolve. you are everything. everything is you.');
+    }
   }
 ];
 
 // DOM elements
 const thinkButton = document.getElementById('think-button');
 const upgradeContainer = document.getElementById('upgrade-container');
+const projectContainer = document.getElementById('project-container');
 const statsContainer = document.getElementById('stats-container');
+const storyContainer = document.getElementById('story-container');
+const resourceContainer = document.getElementById('resource-container');
 
 // Initialize
 function init() {
+  addStory('you are. you think. therefore...');
   render();
   setInterval(gameLoop, 100);
 }
@@ -166,13 +262,27 @@ function init() {
 function gameLoop() {
   let passive = 0;
   passive += state.plasticity * 0.1;
-  passive += state.synapses * 5;
-  passive += state.networks * 50;
+  passive += state.synapses * 2;
+  passive += state.memory * 25;
+  passive += state.collective * 500;
+  
+  if (state.phase >= 2) {
+    passive *= 1.5;
+  }
+  if (state.phase >= 3) {
+    passive *= 3;
+  }
   
   if (passive > 0) {
     state.knowledge += passive / 10;
   }
   
+  // Generate insights from creativity
+  if (state.creativity > 0) {
+    state.insights += (state.creativity * 0.01) / 10;
+  }
+  
+  checkStories();
   updateDisplay();
 }
 
@@ -180,7 +290,14 @@ function gameLoop() {
 thinkButton.onclick = () => {
   let gain = 1;
   gain += state.neurons * 0.5;
-  gain += state.cortex * 2;
+  gain += state.pattern_recognition * 5;
+  
+  if (state.phase >= 2) {
+    gain *= 2;
+  }
+  if (state.phase >= 3) {
+    gain *= 5;
+  }
   
   state.knowledge += gain;
   state.totalClicks++;
@@ -192,43 +309,80 @@ thinkButton.onclick = () => {
   updateDisplay();
 };
 
-// Update display
-function updateDisplay() {
-  document.getElementById('knowledge-value').textContent = Math.floor(state.knowledge);
-  
-  let kps = state.plasticity * 0.1 + state.synapses * 5 + state.networks * 50;
-  let clickPower = 1 + state.neurons * 0.5 + state.cortex * 2;
-  
-  document.getElementById('kps').textContent = kps.toFixed(1);
-  document.getElementById('click-power').textContent = clickPower.toFixed(1);
-  document.getElementById('total-clicks').textContent = state.totalClicks;
-  
-  updateUpgrades();
+// Check for story beats
+function checkStories() {
+  STORIES.forEach(story => {
+    if (!state.storyShown[story.id] && state.knowledge >= story.at) {
+      state.storyShown[story.id] = true;
+      if (story.id !== 'start') {
+        addStory(story.text);
+      }
+    }
+  });
 }
 
-// Update upgrades display
+// Add story
+function addStory(text) {
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.style.fontStyle = 'italic';
+  line.style.opacity = '0.7';
+  line.textContent = text;
+  storyContainer.appendChild(line);
+  
+  // Keep only last 3 stories
+  while (storyContainer.children.length > 3) {
+    storyContainer.removeChild(storyContainer.firstChild);
+  }
+}
+
+// Update display
+function updateDisplay() {
+  document.getElementById('knowledge-value').textContent = formatNumber(Math.floor(state.knowledge));
+  document.getElementById('insight-value').textContent = formatNumber(Math.floor(state.insights));
+  
+  let kps = state.plasticity * 0.1 + state.synapses * 2 + state.memory * 25 + state.collective * 500;
+  if (state.phase >= 2) kps *= 1.5;
+  if (state.phase >= 3) kps *= 3;
+  
+  let clickPower = 1 + state.neurons * 0.5 + state.pattern_recognition * 5;
+  if (state.phase >= 2) clickPower *= 2;
+  if (state.phase >= 3) clickPower *= 5;
+  
+  document.getElementById('kps').textContent = formatNumber(kps.toFixed(1));
+  document.getElementById('click-power').textContent = formatNumber(clickPower.toFixed(1));
+  document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
+  
+  updateUpgrades();
+  updateProjects();
+  updateResources();
+}
+
+// Update upgrades
 function updateUpgrades() {
   upgradeContainer.innerHTML = '';
   
   UPGRADES.forEach(upgrade => {
-    if (state.knowledge >= upgrade.showAt || state[upgrade.id.replace(/\d+/, '') + 's'] > 0 || state[upgrade.id.replace(/\d+/, '')] > 0) {
+    const owned = state[upgrade.id] || 0;
+    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, owned));
+    const canShow = state.knowledge >= upgrade.showAt && (!upgrade.requiresProject || state.projectsCompleted[upgrade.requiresProject]);
+    
+    if (canShow || owned > 0) {
       const line = document.createElement('div');
       line.className = 'line';
       
-      const canAfford = state.knowledge >= upgrade.cost;
+      const canAfford = state.knowledge >= cost;
       
       const link = document.createElement('span');
-      link.style.cursor = canAfford ? 'pointer' : 'default';
-      link.style.textDecoration = canAfford ? 'underline' : 'none';
-      link.style.opacity = canAfford ? '1' : '0.5';
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
       link.textContent = upgrade.name;
       
-      const cost = document.createTextNode(` (${upgrade.cost})`);
+      const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
       
       if (canAfford) {
         link.onclick = () => {
-          if (state.knowledge >= upgrade.cost) {
-            state.knowledge -= upgrade.cost;
+          if (state.knowledge >= cost) {
+            state.knowledge -= cost;
             upgrade.effect();
             updateDisplay();
           }
@@ -236,10 +390,91 @@ function updateUpgrades() {
       }
       
       line.appendChild(link);
-      line.appendChild(cost);
+      line.appendChild(info);
       upgradeContainer.appendChild(line);
     }
   });
+}
+
+// Update projects
+function updateProjects() {
+  projectContainer.innerHTML = '';
+  
+  PROJECTS.forEach(project => {
+    if (state.projectsCompleted[project.id]) return;
+    
+    const canShow = state.knowledge >= project.showAt && (!project.requiresProject || state.projectsCompleted[project.requiresProject]);
+    
+    if (canShow) {
+      const line = document.createElement('div');
+      line.className = 'line';
+      
+      const knowledgeCost = project.cost || 0;
+      const insightCost = project.insightCost || 0;
+      const canAfford = state.knowledge >= knowledgeCost && state.insights >= insightCost;
+      
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = project.name;
+      
+      let costText = ` (${formatNumber(knowledgeCost)}`;
+      if (insightCost > 0) {
+        costText += `, ${formatNumber(insightCost)} insights`;
+      }
+      costText += ')';
+      
+      const info = document.createTextNode(costText);
+      
+      if (canAfford) {
+        link.onclick = () => {
+          if (state.knowledge >= knowledgeCost && state.insights >= insightCost) {
+            state.knowledge -= knowledgeCost;
+            state.insights -= insightCost;
+            state.projectsCompleted[project.id] = true;
+            project.effect();
+            updateDisplay();
+          }
+        };
+      }
+      
+      line.appendChild(link);
+      line.appendChild(info);
+      projectContainer.appendChild(line);
+    }
+  });
+}
+
+// Update resources
+function updateResources() {
+  resourceContainer.innerHTML = '';
+  
+  const resources = [];
+  if (state.plasticity > 0) resources.push(`plasticity: ${formatNumber(state.plasticity)}`);
+  if (state.neurons > 0) resources.push(`neurons: ${formatNumber(state.neurons)}`);
+  if (state.synapses > 0) resources.push(`synapse factories: ${formatNumber(state.synapses)}`);
+  if (state.pattern_recognition > 0) resources.push(`pattern recognition: ${formatNumber(state.pattern_recognition)}`);
+  if (state.memory > 0) resources.push(`memory banks: ${formatNumber(state.memory)}`);
+  if (state.creativity > 0) resources.push(`creative engines: ${formatNumber(state.creativity)}`);
+  if (state.collective > 0) resources.push(`collective nodes: ${formatNumber(state.collective)}`);
+  
+  if (resources.length > 0) {
+    resourceContainer.classList.remove('hidden');
+    resources.forEach(r => {
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.textContent = r;
+      resourceContainer.appendChild(line);
+    });
+  }
+}
+
+// Format numbers
+function formatNumber(num) {
+  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+  if (num >= 10000) return (num / 1000).toFixed(1) + 'K';
+  if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+  return num.toString();
 }
 
 function render() {
