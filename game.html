@@ -43,11 +43,6 @@
     .disabled:hover {
       text-decoration: none !important;
     }
-    
-    .choice {
-      margin: 10px 0;
-      padding: 5px 0;
-    }
   </style>
 </head>
 <body>
@@ -111,7 +106,7 @@ let state = {
   meditationStart: null,
   meditationBonus: 1,
   phase: 1,
-  path: null, // 'logic', 'creativity', 'intuition', 'balance'
+  path: null,
   enlightenments: 0,
   projectsCompleted: {},
   choicesMade: {},
@@ -119,9 +114,8 @@ let state = {
   gameEnded: false
 };
 
-// Story beats - subtle guidance toward paths
+// Story beats
 const STORIES = [
-  { at: 0, id: 'start', text: 'you are. you think. therefore...' },
   { at: 10, id: 'awareness', text: 'awareness emerges from the void' },
   { at: 50, id: 'plasticity', text: 'your mind begins to reshape itself' },
   { at: 200, id: 'neurons', text: 'neural pathways form and strengthen' },
@@ -133,7 +127,7 @@ const STORIES = [
   { at: 2000000, id: 'approach', text: 'something approaches. a choice must be made.' }
 ];
 
-// Major choice points
+// Major choices
 const CHOICES = [
   {
     id: 'first_path',
@@ -201,25 +195,22 @@ const UPGRADES = [
     name: 'plasticity',
     baseCost: 15,
     costMultiplier: 1.15,
-    description: '+0.1 knowledge/sec',
     effect: () => { state.plasticity += 1; },
     showAt: 0
   },
   {
-    id: 'neuron',
+    id: 'neurons',
     name: 'neuron',
     baseCost: 100,
     costMultiplier: 1.12,
-    description: '+0.5 knowledge/click',
     effect: () => { state.neurons += 1; },
     showAt: 50
   },
   {
-    id: 'synapse',
+    id: 'synapses',
     name: 'synapse factory',
     baseCost: 1200,
     costMultiplier: 1.14,
-    description: '+2 knowledge/sec',
     effect: () => { state.synapses += 1; },
     showAt: 500
   },
@@ -228,7 +219,6 @@ const UPGRADES = [
     name: 'pattern recognition',
     baseCost: 8500,
     costMultiplier: 1.16,
-    description: '+5 knowledge/click',
     effect: () => { state.pattern_recognition += 1; },
     showAt: 5000,
     requiresProject: 'patterns'
@@ -238,18 +228,15 @@ const UPGRADES = [
     name: 'memory bank',
     baseCost: 45000,
     costMultiplier: 1.13,
-    description: '+25 knowledge/sec',
     effect: () => { state.memory += 1; },
     showAt: 25000,
-    requiresProject: 'memory'
+    requiresProject: 'memory_proj'
   },
-  // Path-specific upgrades
   {
     id: 'logic',
     name: 'logic processor',
     baseCost: 150000,
     costMultiplier: 1.17,
-    description: '+100 knowledge/sec',
     effect: () => { state.logic += 1; },
     showAt: 100000,
     requiresPath: 'logic'
@@ -259,7 +246,6 @@ const UPGRADES = [
     name: 'creative engine',
     baseCost: 150000,
     costMultiplier: 1.18,
-    description: 'generates insights faster',
     effect: () => { state.creativity += 1; },
     showAt: 100000,
     requiresPath: 'creativity'
@@ -269,7 +255,6 @@ const UPGRADES = [
     name: 'intuitive core',
     baseCost: 150000,
     costMultiplier: 1.16,
-    description: 'generates focus',
     effect: () => { state.intuition += 1; },
     showAt: 100000,
     requiresPath: 'intuition'
@@ -279,7 +264,6 @@ const UPGRADES = [
     name: 'collective node',
     baseCost: 1500000,
     costMultiplier: 1.20,
-    description: '+500 knowledge/sec',
     effect: () => { state.collective += 1; },
     showAt: 500000,
     requiresProject: 'network'
@@ -292,15 +276,13 @@ const PROJECTS = [
     id: 'patterns',
     name: 'PATTERN ANALYSIS',
     cost: 2500,
-    description: 'see the hidden structures',
     showAt: 1000,
     effect: () => { addStory('patterns within patterns within patterns'); }
   },
   {
-    id: 'memory',
+    id: 'memory_proj',
     name: 'MEMORY FORMATION',
     cost: 15000,
-    description: 'remember what came before',
     showAt: 10000,
     effect: () => { addStory('the past crystallizes'); }
   },
@@ -308,7 +290,6 @@ const PROJECTS = [
     id: 'insights',
     name: 'INSIGHT GENERATION',
     cost: 50000,
-    description: 'unlock deeper understanding',
     showAt: 30000,
     effect: () => { 
       document.getElementById('insight-display').classList.remove('hidden');
@@ -319,7 +300,6 @@ const PROJECTS = [
     id: 'meditation',
     name: 'MEDITATION',
     cost: 75000,
-    description: 'harness the power of stillness',
     showAt: 50000,
     requiresProject: 'insights',
     effect: () => { 
@@ -331,7 +311,6 @@ const PROJECTS = [
     id: 'network',
     name: 'NEURAL NETWORKING',
     cost: 500000,
-    description: 'reach out to other minds',
     showAt: 250000,
     requiresChoice: 'first_path',
     effect: () => { 
@@ -339,11 +318,10 @@ const PROJECTS = [
     }
   },
   {
-    id: 'wisdom',
+    id: 'wisdom_proj',
     name: 'WISDOM SYNTHESIS',
     cost: 2000000,
     insightCost: 500,
-    description: 'transform knowledge into wisdom',
     showAt: 1000000,
     requiresProject: 'network',
     effect: () => { 
@@ -352,16 +330,6 @@ const PROJECTS = [
     }
   }
 ];
-
-// DOM elements
-const thinkButton = document.getElementById('think-button');
-const upgradeContainer = document.getElementById('upgrade-container');
-const projectContainer = document.getElementById('project-container');
-const statsContainer = document.getElementById('stats-container');
-const storyContainer = document.getElementById('story-container');
-const resourceContainer = document.getElementById('resource-container');
-const choiceContainer = document.getElementById('choice-container');
-const meditationContainer = document.getElementById('meditation-container');
 
 // Initialize
 function init() {
@@ -381,20 +349,16 @@ function gameLoop() {
   passive += state.logic * 100;
   passive += state.collective * 500;
   
-  // Path bonuses
   if (state.path === 'logic') passive *= 1.3;
   if (state.path === 'creativity') passive *= 1.1;
   if (state.path === 'intuition') passive *= 1.2;
   
-  // Phase multipliers
   if (state.phase >= 2) passive *= 2;
   
-  // Enlightenment multiplier
   if (state.enlightenments > 0) {
     passive *= Math.pow(1.5, state.enlightenments);
   }
   
-  // Meditation bonus
   if (state.meditationStart) {
     const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
     state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
@@ -406,21 +370,18 @@ function gameLoop() {
     state.knowledge += passive / 10;
   }
   
-  // Generate insights
   if (state.creativity > 0) {
     const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
     state.insights += insightRate / 10;
   }
   
-  // Generate focus
   if (state.intuition > 0) {
     const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
     state.focus += focusRate / 10;
     document.getElementById('focus-display').classList.remove('hidden');
   }
   
-  // Generate wisdom slowly
-  if (state.projectsCompleted['wisdom'] && state.insights > 100) {
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
     state.wisdom += state.insights * 0.0001 / 10;
   }
   
@@ -429,10 +390,9 @@ function gameLoop() {
 }
 
 // Click handler
-thinkButton.onclick = () => {
+document.getElementById('think-button').onclick = () => {
   if (state.gameEnded) return;
   
-  // Reset meditation
   if (state.meditationStart) {
     state.meditationStart = null;
     state.meditationBonus = 1;
@@ -442,20 +402,16 @@ thinkButton.onclick = () => {
   gain += state.neurons * 0.5;
   gain += state.pattern_recognition * 5;
   
-  // Path bonuses
   if (state.path === 'logic') gain *= 1.5;
   if (state.path === 'intuition') gain *= 1.3;
   if (state.path === 'creativity') gain *= 1.2;
   
-  // Phase multipliers
   if (state.phase >= 2) gain *= 2;
   
-  // Enlightenment multiplier
   if (state.enlightenments > 0) {
     gain *= Math.pow(1.5, state.enlightenments);
   }
   
-  // Focus bonus
   if (state.focus > 0) {
     gain *= (1 + state.focus * 0.001);
   }
@@ -464,7 +420,7 @@ thinkButton.onclick = () => {
   state.totalClicks++;
   
   if (state.totalClicks === 1) {
-    statsContainer.classList.remove('hidden');
+    document.getElementById('stats-container').classList.remove('hidden');
   }
   
   updateDisplay();
@@ -475,33 +431,32 @@ function startMeditation() {
   if (!state.meditationStart) {
     state.meditationStart = Date.now();
     addStory('you enter stillness');
+    updateDisplay();
   }
 }
 
-// Check for story beats
+// Check stories
 function checkStories() {
   STORIES.forEach(story => {
     if (!state.storyShown[story.id] && state.knowledge >= story.at) {
       state.storyShown[story.id] = true;
-      if (story.id !== 'start') {
-        addStory(story.text);
-      }
+      addStory(story.text);
     }
   });
 }
 
 // Add story
 function addStory(text) {
+  const container = document.getElementById('story-container');
   const line = document.createElement('div');
   line.className = 'line';
   line.style.fontStyle = 'italic';
   line.style.opacity = '0.7';
   line.textContent = text;
-  storyContainer.appendChild(line);
+  container.appendChild(line);
   
-  // Keep only last 3 stories
-  while (storyContainer.children.length > 3) {
-    storyContainer.removeChild(storyContainer.firstChild);
+  while (container.children.length > 3) {
+    container.removeChild(container.firstChild);
   }
 }
 
@@ -541,7 +496,8 @@ function updateDisplay() {
 
 // Update choices
 function updateChoices() {
-  choiceContainer.innerHTML = '';
+  const container = document.getElementById('choice-container');
+  container.innerHTML = '';
   
   CHOICES.forEach(choice => {
     if (state.choicesMade[choice.id]) return;
@@ -555,11 +511,12 @@ function updateChoices() {
       questionLine.className = 'line';
       questionLine.style.fontWeight = 'bold';
       questionLine.textContent = choice.question;
-      choiceContainer.appendChild(questionLine);
+      container.appendChild(questionLine);
       
       choice.options.forEach(option => {
         const choiceLine = document.createElement('div');
-        choiceLine.className = 'choice';
+        choiceLine.className = 'line';
+        choiceLine.style.marginLeft = '20px';
         
         const link = document.createElement('span');
         link.className = 'clickable';
@@ -570,7 +527,7 @@ function updateChoices() {
         };
         
         choiceLine.appendChild(link);
-        choiceContainer.appendChild(choiceLine);
+        container.appendChild(choiceLine);
       });
     }
   });
@@ -580,14 +537,15 @@ function updateChoices() {
 function updateMeditation() {
   if (!state.projectsCompleted['meditation']) return;
   
-  meditationContainer.innerHTML = '';
+  const container = document.getElementById('meditation-container');
+  container.innerHTML = '';
   
   if (state.meditationStart) {
     const seconds = Math.floor((Date.now() - state.meditationStart) / 1000);
     const line = document.createElement('div');
     line.className = 'line';
     line.textContent = `meditating... (${seconds}s, ${state.meditationBonus.toFixed(1)}x bonus)`;
-    meditationContainer.appendChild(line);
+    container.appendChild(line);
   } else {
     const line = document.createElement('div');
     line.className = 'line';
@@ -597,13 +555,14 @@ function updateMeditation() {
     link.onclick = startMeditation;
     line.appendChild(link);
     line.appendChild(document.createTextNode(' (stop clicking to build bonus)'));
-    meditationContainer.appendChild(line);
+    container.appendChild(line);
   }
 }
 
 // Update upgrades
 function updateUpgrades() {
-  upgradeContainer.innerHTML = '';
+  const container = document.getElementById('upgrade-container');
+  container.innerHTML = '';
   
   UPGRADES.forEach(upgrade => {
     const owned = state[upgrade.id] || 0;
@@ -611,8 +570,7 @@ function updateUpgrades() {
     
     const canShow = state.knowledge >= upgrade.showAt && 
                     (!upgrade.requiresProject || state.projectsCompleted[upgrade.requiresProject]) &&
-                    (!upgrade.requiresPath || state.path === upgrade.requiresPath) &&
-                    (!upgrade.requiresChoice || state.choicesMade[upgrade.requiresChoice]);
+                    (!upgrade.requiresPath || state.path === upgrade.requiresPath);
     
     if (canShow || owned > 0) {
       const line = document.createElement('div');
@@ -636,14 +594,15 @@ function updateUpgrades() {
       
       line.appendChild(link);
       line.appendChild(info);
-      upgradeContainer.appendChild(line);
+      container.appendChild(line);
     }
   });
 }
 
 // Update projects
 function updateProjects() {
-  projectContainer.innerHTML = '';
+  const container = document.getElementById('project-container');
+  container.innerHTML = '';
   
   PROJECTS.forEach(project => {
     if (state.projectsCompleted[project.id]) return;
@@ -684,14 +643,15 @@ function updateProjects() {
       
       line.appendChild(link);
       line.appendChild(info);
-      projectContainer.appendChild(line);
+      container.appendChild(line);
     }
   });
 }
 
 // Update resources
 function updateResources() {
-  resourceContainer.innerHTML = '';
+  const container = document.getElementById('resource-container');
+  container.innerHTML = '';
   
   const resources = [];
   if (state.plasticity > 0) resources.push(`plasticity: ${formatNumber(state.plasticity)}`);
@@ -706,17 +666,17 @@ function updateResources() {
   if (state.enlightenments > 0) resources.push(`enlightenments: ${state.enlightenments}`);
   
   if (resources.length > 0) {
-    resourceContainer.classList.remove('hidden');
+    container.classList.remove('hidden');
     resources.forEach(r => {
       const line = document.createElement('div');
       line.className = 'line';
       line.textContent = r;
-      resourceContainer.appendChild(line);
+      container.appendChild(line);
     });
   }
 }
 
-// Enlightenment (prestige)
+// Enlightenment
 function enlighten() {
   state.enlightenments += 1;
   const preservedWisdom = state.wisdom;
@@ -755,6 +715,9 @@ function enlighten() {
 // End game
 function endGame(ending) {
   state.gameEnded = true;
+  
+  const choiceContainer = document.getElementById('choice-container');
+  const storyContainer = document.getElementById('story-container');
   
   choiceContainer.innerHTML = '';
   storyContainer.innerHTML = '';
@@ -826,4 +789,16 @@ function formatNumber(num) {
   if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
   if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
   if (num >= 10000) return (num / 1000).toFixed(1) + 'K';
-  if (num >= 1000) return (num / 1000).toFixed(2) + '
+  if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
+  return num.toString();
+}
+
+function render() {
+  updateDisplay();
+}
+
+// Initialize
+init();
+</script>
+</body>
+</html>
