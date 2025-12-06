@@ -379,15 +379,14 @@ function updateUpgrades() {
       
       const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
       
-      if (canAfford) {
-        link.onclick = () => {
-          if (state.knowledge >= cost) {
-            state.knowledge -= cost;
-            upgrade.effect();
-            updateDisplay();
-          }
-        };
-      }
+      // Add click handler even if can't afford (check inside)
+      link.onclick = () => {
+        if (state.knowledge >= cost) {
+          state.knowledge -= cost;
+          upgrade.effect();
+          updateDisplay();
+        }
+      };
       
       line.appendChild(link);
       line.appendChild(info);
