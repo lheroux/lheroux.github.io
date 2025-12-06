@@ -800,9 +800,7 @@ function formatNumber(num) {
   if (typeof num === 'string') return num;
   if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
   if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-  if (num >= 10000) return (num / 1000).toFixed(1) + 'K';
-  if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
-  return num.toString();
+  return Math.floor(num).toString();
 }
 
 function render() {
