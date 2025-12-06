@@ -12,7 +12,9 @@
       color: white;
       text-shadow: 0px 0px 0px black;
       position: relative;
+      background-color: black;
     }
+
     .container {
       display: flex;
       flex-direction: column;
@@ -20,52 +22,61 @@
       align-items: center;
       height: 100%;
       text-align: center;
+      gap: 25px;
     }
+
     h1 {
       font-style: italic;
       font-size: 3em;
-      margin: 0px 0 20px 0;
-    }
-    p.top-text {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.5em;
       margin: 0;
+      text-transform: lowercase;
     }
+
+    img {
+      max-width: 65%;
+      height: auto;
+      display: block;
+    }
+
+    .time-text {
+      font-size: 1.4em;
+      margin: 0;
+      margin-top: 5px;
+    }
+
     .copyright {
       position: absolute;
       bottom: 10px;
       left: 10px;
       font-size: 0.8em;
-      text-shadow: 0px 0px 0px black;
     }
   </style>
 </head>
 <body>
-  <!-- top text now shows live Montreal time -->
-  <p class="top-text" id="montreal-time">Time in Montréal - </p>
 
   <div class="container">
     <h1>laurent héroux</h1>
+
+    <!-- centered image -->
+    <img id="main-image" alt="image">
+
+    <!-- time under the image -->
+    <p class="time-text" id="montreal-time"></p>
   </div>
+
   <div class="copyright">© laurent héroux 2025</div>
 
   <script>
-    // --- List of images ---
-    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
+    // images
+    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG'];
 
-    // --- Choose which one to display (0 for first, 1 for second, etc.) ---
-    const selectedImageIndex = 2; 
+    // choose
+    const selectedImageIndex = 2;
 
-    // --- Apply the selected image as background ---
-    document.body.style.backgroundImage = `url('${images[selectedImageIndex]}')`;
-    document.body.style.backgroundSize = 'cover';
-    document.body.style.backgroundPosition = 'center';
-    document.body.style.backgroundRepeat = 'no-repeat';
+    // set centered <img>
+    document.getElementById('main-image').src = images[selectedImageIndex];
 
-    // --- Live Montreal time ---
+    // live montreal time
     function updateMontrealTime() {
       const now = new Date();
       const options = {
@@ -76,11 +87,13 @@
         hour12: true
       };
       const timeString = now.toLocaleTimeString('en-CA', options);
-      document.getElementById('montreal-time').textContent = `time in montréal - ${timeString}`;
+      document.getElementById('montreal-time').textContent = 
+        `time in montréal - ${timeString}`;
     }
 
-    updateMontrealTime(); // initial call
-    setInterval(updateMontrealTime, 1000); // update every second
+    updateMontrealTime();
+    setInterval(updateMontrealTime, 1000);
   </script>
+
 </body>
 </html>
