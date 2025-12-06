@@ -15,15 +15,30 @@
       justify-content: center;
       align-items: center;
       text-align: center;
+      position: relative;
     }
-    a {
-      color: black;
-      text-decoration: none;
+    p {
       font-size: 1.5em;
+      margin: 0;
+    }
+    .home-link {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.9em;
+      text-decoration: none;
+      color: black;
+    }
+    .home-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <a href="mailto:lheroux@protonmail.com">lheroux@protonmail.com</a>
+
+  <p><a href="mailto:lheroux@protonmail.com" style="color:black; text-decoration:none;">lheroux@protonmail.com</a></p>
+
+  <a class="home-link" href="index.html">home</a>
+
 </body>
 </html>
