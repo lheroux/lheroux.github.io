@@ -21,10 +21,16 @@
       cursor: pointer;
       user-select: none;
       display: inline;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     
     .clickable:hover {
       text-decoration: underline;
+    }
+    
+    .clickable:active {
+      opacity: 0.7;
     }
     
     .line {
