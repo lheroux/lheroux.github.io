@@ -17,6 +17,8 @@
       color: #000;
       line-height: 1.8;
       font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     
     #game-container {
@@ -39,10 +41,12 @@
     
     .clickable:active {
       opacity: 0.7;
+      transform: scale(0.98);
     }
     
     .line {
       margin: 3px 0;
+      transition: opacity 0.2s ease;
     }
     
     .hidden {
@@ -82,6 +86,10 @@
     
     #settings-link {
       left: 10px;
+    }
+    
+    #home-link {
+      right: 10px;
     }
     
     #save-indicator {
@@ -191,6 +199,7 @@
   </div>
   
   <div id="settings-link" class="footer-link clickable">settings</div>
+  <div id="home-link" class="footer-link clickable">home</div>
   
   <div id="save-indicator">saved</div>
   
@@ -226,6 +235,9 @@
   </div>
 
 <script>
+// DOM element cache
+const elements = {};
+
 // Game state
 let state = {
   knowledge: 0,
@@ -256,6 +268,11 @@ let state = {
   lastSave: Date.now(),
   lastActiveTime: Date.now()
 };
+
+// Cache for display updates
+let lastDisplayValues = {};
+let lastUpdateTime = 0;
+const DISPLAY_UPDATE_INTERVAL = 100; // Update display every 100ms instead of 50ms
 
 // Settings
 let settings = {
@@ -609,6 +626,13 @@ function calculateClickPower() {
   if (state.enlightenments > 0) power *= Math.pow(1.5, state.enlightenments);
   if (state.focus > 0) power *= (1 + state.focus * 0.001);
   
+  // Early game boost for better playability
+  if (state.knowledge < 100) {
+    power *= 1.5;
+  } else if (state.knowledge < 500) {
+    power *= 1.2;
+  }
+  
   return power;
 }
 
@@ -627,42 +651,48 @@ function handleVisibilityChange() {
 
 // Game loop
 let lastFrameTime = 0;
-const FRAME_INTERVAL = 50;
+const FRAME_INTERVAL = 16; // ~60fps for smoother updates
 
 function gameLoop(currentTime) {
   if (state.gameEnded) return;
   
-  if (currentTime - lastFrameTime >= FRAME_INTERVAL) {
-    const deltaTime = (currentTime - lastFrameTime) / 1000;
-    
-    if (state.meditationStart) {
-      const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
-      state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
-    }
-    
-    const kps = calculateKPS();
-    if (kps > 0) {
-      state.knowledge += kps * deltaTime;
-    }
-    
-    if (state.creativity > 0) {
-      const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
-      state.insights += insightRate * deltaTime;
-    }
-    
-    if (state.intuition > 0) {
-      const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
-      state.focus += focusRate * deltaTime;
-    }
-    
-    if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
-      state.wisdom += state.insights * 0.0001 * deltaTime;
-    }
-    
-    checkStories();
+  const deltaTime = (currentTime - lastFrameTime) / 1000;
+  lastFrameTime = currentTime;
+  
+  // Update game state every frame for smoothness
+  if (state.meditationStart) {
+    const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
+    state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
+  }
+  
+  const kps = calculateKPS();
+  if (kps > 0) {
+    state.knowledge += kps * deltaTime;
+  }
+  
+  if (state.creativity > 0) {
+    const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+    state.insights += insightRate * deltaTime;
+  }
+  
+  if (state.intuition > 0) {
+    const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+    state.focus += focusRate * deltaTime;
+  }
+  
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+    state.wisdom += state.insights * 0.0001 * deltaTime;
+  }
+  
+  checkStories();
+  
+  // Throttle display updates
+  if (currentTime - lastUpdateTime >= DISPLAY_UPDATE_INTERVAL) {
     updateDisplay();
-    
-    lastFrameTime = currentTime;
+    lastUpdateTime = currentTime;
+  } else {
+    // Still update critical numbers every frame for smoothness
+    updateCriticalNumbers();
   }
   
   requestAnimationFrame(gameLoop);
@@ -700,23 +730,98 @@ function addStory(text) {
   }
 }
 
-// Update display
+// Update only critical numbers (called every frame)
+function updateCriticalNumbers() {
+  if (!elements['knowledge-value']) return;
+  
+  const knowledgeText = formatNumber(state.knowledge);
+  if (lastDisplayValues.knowledge !== knowledgeText) {
+    elements['knowledge-value'].textContent = knowledgeText;
+    lastDisplayValues.knowledge = knowledgeText;
+  }
+  
+  const kps = calculateKPS();
+  const kpsText = kps < 1000 ? kps.toFixed(1) : formatNumber(kps);
+  if (lastDisplayValues.kps !== kpsText) {
+    elements['kps-value'].textContent = kpsText;
+    lastDisplayValues.kps = kpsText;
+  }
+}
+
+// Update display (throttled)
 function updateDisplay() {
-  document.getElementById('knowledge-value').textContent = formatNumber(state.knowledge);
-  document.getElementById('insight-value').textContent = formatNumber(state.insights);
-  document.getElementById('focus-value').textContent = formatNumber(state.focus);
-  document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  // Cache elements on first call
+  if (!elements['knowledge-value']) {
+    elements['knowledge-value'] = document.getElementById('knowledge-value');
+    elements['insight-value'] = document.getElementById('insight-value');
+    elements['focus-value'] = document.getElementById('focus-value');
+    elements['wisdom-value'] = document.getElementById('wisdom-value');
+    elements['kps-value'] = document.getElementById('kps-value');
+    elements['click-power'] = document.getElementById('click-power');
+    elements['enlightenment-text'] = document.getElementById('enlightenment-text');
+  }
+  
+  // Update numbers only if changed
+  const knowledgeText = formatNumber(state.knowledge);
+  if (lastDisplayValues.knowledge !== knowledgeText) {
+    elements['knowledge-value'].textContent = knowledgeText;
+    lastDisplayValues.knowledge = knowledgeText;
+  }
+  
+  const insightLine = elements['insight-line'] || document.getElementById('insight-line');
+  if (insightLine && !insightLine.classList.contains('hidden')) {
+    const insightText = formatNumber(state.insights);
+    if (lastDisplayValues.insights !== insightText) {
+      elements['insight-value'].textContent = insightText;
+      lastDisplayValues.insights = insightText;
+    }
+  }
+  
+  const focusLine = elements['focus-line'] || document.getElementById('focus-line');
+  if (focusLine && !focusLine.classList.contains('hidden')) {
+    const focusText = formatNumber(state.focus);
+    if (lastDisplayValues.focus !== focusText) {
+      elements['focus-value'].textContent = focusText;
+      lastDisplayValues.focus = focusText;
+    }
+  }
+  
+  const wisdomLine = elements['wisdom-line'] || document.getElementById('wisdom-line');
+  if (wisdomLine && !wisdomLine.classList.contains('hidden')) {
+    const wisdomText = formatNumber(state.wisdom);
+    if (lastDisplayValues.wisdom !== wisdomText) {
+      elements['wisdom-value'].textContent = wisdomText;
+      lastDisplayValues.wisdom = wisdomText;
+    }
+  }
   
   const kps = calculateKPS();
   const clickPower = calculateClickPower();
   
-  document.getElementById('kps-value').textContent = formatNumber(kps.toFixed(1));
-  document.getElementById('click-power').textContent = formatNumber(clickPower.toFixed(1));
-  
-  if (state.enlightenments > 0) {
-    document.getElementById('enlightenment-text').textContent = ` (enlightenments: ${state.enlightenments})`;
+  const kpsText = kps < 1000 ? kps.toFixed(1) : formatNumber(kps);
+  if (lastDisplayValues.kps !== kpsText) {
+    elements['kps-value'].textContent = kpsText;
+    lastDisplayValues.kps = kpsText;
   }
   
+  const clickPowerText = clickPower < 1000 ? clickPower.toFixed(1) : formatNumber(clickPower);
+  if (lastDisplayValues.clickPower !== clickPowerText) {
+    elements['click-power'].textContent = clickPowerText;
+    lastDisplayValues.clickPower = clickPowerText;
+  }
+  
+  if (state.enlightenments > 0) {
+    const enlightenmentText = ` (enlightenments: ${state.enlightenments})`;
+    if (lastDisplayValues.enlightenment !== enlightenmentText) {
+      elements['enlightenment-text'].textContent = enlightenmentText;
+      lastDisplayValues.enlightenment = enlightenmentText;
+    }
+  } else if (lastDisplayValues.enlightenment !== '') {
+    elements['enlightenment-text'].textContent = '';
+    lastDisplayValues.enlightenment = '';
+  }
+  
+  // Only update containers if they might have changed
   updateChoices();
   updateMeditation();
   updateProjects();
@@ -725,51 +830,65 @@ function updateDisplay() {
 }
 
 // Update choices
+let lastChoicesHash = '';
 function updateChoices() {
-  const container = document.getElementById('choice-container');
+  const container = elements['choice-container'] || (elements['choice-container'] = document.getElementById('choice-container'));
+  
+  // Build hash of visible choices to avoid unnecessary rebuilds
+  const visibleChoices = CHOICES.filter(choice => 
+    !state.choicesMade[choice.id] &&
+    state.knowledge >= choice.showAt && 
+    (!choice.requiresProject || state.projectsCompleted[choice.requiresProject]) &&
+    (!choice.requiresChoice || state.choicesMade[choice.requiresChoice])
+  );
+  
+  const choicesHash = visibleChoices.map(c => c.id).join(',');
+  if (choicesHash === lastChoicesHash && container.children.length > 0) return;
+  lastChoicesHash = choicesHash;
+  
   container.innerHTML = '';
   
-  CHOICES.forEach(choice => {
-    if (state.choicesMade[choice.id]) return;
+  visibleChoices.forEach(choice => {
+    const questionLine = document.createElement('div');
+    questionLine.className = 'line';
+    questionLine.textContent = choice.question;
+    container.appendChild(questionLine);
     
-    const canShow = state.knowledge >= choice.showAt && 
-                    (!choice.requiresProject || state.projectsCompleted[choice.requiresProject]) &&
-                    (!choice.requiresChoice || state.choicesMade[choice.requiresChoice]);
-    
-    if (canShow) {
-      const questionLine = document.createElement('div');
-      questionLine.className = 'line';
-      questionLine.textContent = choice.question;
-      container.appendChild(questionLine);
+    choice.options.forEach(option => {
+      const optionLine = document.createElement('div');
+      optionLine.className = 'line indent';
       
-      choice.options.forEach(option => {
-        const optionLine = document.createElement('div');
-        optionLine.className = 'line indent';
-        
-        const link = document.createElement('span');
-        link.className = 'clickable';
-        link.textContent = option.text;
-        link.onclick = () => {
-          option.effect();
-          updateDisplay();
-        };
-        
-        optionLine.appendChild(link);
-        container.appendChild(optionLine);
+      const link = document.createElement('span');
+      link.className = 'clickable';
+      link.textContent = option.text;
+      link.addEventListener('click', () => {
+        option.effect();
+        updateDisplay();
       });
-    }
+      
+      optionLine.appendChild(link);
+      container.appendChild(optionLine);
+    });
   });
 }
 
 // Update meditation
+let lastMeditationState = null;
 function updateMeditation() {
   if (!state.projectsCompleted['meditation']) return;
   
-  const container = document.getElementById('meditation-container');
+  const container = elements['meditation-container'] || (elements['meditation-container'] = document.getElementById('meditation-container'));
+  
+  const isMeditating = !!state.meditationStart;
+  const seconds = isMeditating ? Math.floor((Date.now() - state.meditationStart) / 1000) : 0;
+  const currentState = `${isMeditating}-${seconds}-${state.meditationBonus.toFixed(1)}`;
+  
+  if (currentState === lastMeditationState) return;
+  lastMeditationState = currentState;
+  
   container.innerHTML = '';
   
-  if (state.meditationStart) {
-    const seconds = Math.floor((Date.now() - state.meditationStart) / 1000);
+  if (isMeditating) {
     const line = document.createElement('div');
     line.className = 'line';
     line.textContent = `meditating... ${seconds}s (${state.meditationBonus.toFixed(1)}x bonus)`;
@@ -781,7 +900,7 @@ function updateMeditation() {
     const btn = document.createElement('span');
     btn.className = 'clickable';
     btn.textContent = 'meditate';
-    btn.onclick = startMeditation;
+    btn.addEventListener('click', startMeditation);
     
     line.appendChild(btn);
     container.appendChild(line);
@@ -797,13 +916,25 @@ function startMeditation() {
 }
 
 // Update projects
+let lastProjectsHash = '';
 function updateProjects() {
-  const container = document.getElementById('project-container');
+  const container = elements['project-container'] || (elements['project-container'] = document.getElementById('project-container'));
   
   const visibleProjects = PROJECTS.filter(p => !state.projectsCompleted[p.id] && 
     state.knowledge >= p.showAt && 
     (!p.requiresProject || state.projectsCompleted[p.requiresProject]) &&
     (!p.requiresChoice || state.choicesMade[p.requiresChoice]));
+  
+  // Build hash to detect changes
+  const projectsHash = visibleProjects.map(p => {
+    const knowledgeCost = p.cost || 0;
+    const insightCost = p.insightCost || 0;
+    const canAfford = state.knowledge >= knowledgeCost && state.insights >= insightCost;
+    return `${p.id}-${canAfford}`;
+  }).join(',');
+  
+  if (projectsHash === lastProjectsHash && container.children.length > 0) return;
+  lastProjectsHash = projectsHash;
   
   if (visibleProjects.length === 0) {
     container.innerHTML = '';
@@ -830,15 +961,16 @@ function updateProjects() {
     }
     costText += ')';
     
-    link.onclick = () => {
+    link.addEventListener('click', () => {
       if (state.knowledge >= knowledgeCost && state.insights >= insightCost) {
         state.knowledge -= knowledgeCost;
         state.insights -= insightCost;
         state.projectsCompleted[project.id] = true;
         project.effect();
+        lastProjectsHash = ''; // Force update
         updateDisplay();
       }
-    };
+    });
     
     line.appendChild(link);
     line.appendChild(document.createTextNode(costText));
@@ -847,8 +979,9 @@ function updateProjects() {
 }
 
 // Update upgrades
+let lastUpgradesHash = '';
 function updateUpgrades() {
-  const container = document.getElementById('upgrade-container');
+  const container = elements['upgrade-container'] || (elements['upgrade-container'] = document.getElementById('upgrade-container'));
   
   const visibleUpgrades = UPGRADES.filter(u => {
     const owned = state[u.id] || 0;
@@ -856,6 +989,17 @@ function updateUpgrades() {
            (!u.requiresProject || state.projectsCompleted[u.requiresProject]) &&
            (!u.requiresPath || state.path === u.requiresPath)) || owned > 0;
   });
+  
+  // Build hash to detect changes
+  const upgradesHash = visibleUpgrades.map(u => {
+    const owned = state[u.id] || 0;
+    const cost = Math.floor(u.baseCost * Math.pow(u.costMultiplier, owned));
+    const canAfford = state.knowledge >= cost;
+    return `${u.id}-${owned}-${canAfford}`;
+  }).join(',');
+  
+  if (upgradesHash === lastUpgradesHash && container.children.length > 0) return;
+  lastUpgradesHash = upgradesHash;
   
   if (visibleUpgrades.length === 0) {
     container.innerHTML = '';
@@ -877,13 +1021,14 @@ function updateUpgrades() {
     link.className = canAfford ? 'clickable' : 'clickable disabled';
     link.textContent = upgrade.name;
     
-    link.onclick = () => {
+    link.addEventListener('click', () => {
       if (state.knowledge >= cost) {
         state.knowledge -= cost;
         upgrade.effect();
+        lastUpgradesHash = ''; // Force update
         updateDisplay();
       }
-    };
+    });
     
     const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
     
@@ -894,8 +1039,9 @@ function updateUpgrades() {
 }
 
 // Update resources
+let lastResourcesHash = '';
 function updateResources() {
-  const container = document.getElementById('resource-container');
+  const container = elements['resource-container'] || (elements['resource-container'] = document.getElementById('resource-container'));
   
   const resources = [];
   if (state.plasticity > 0) resources.push(`plasticity: ${formatNumber(state.plasticity)}`);
@@ -907,6 +1053,10 @@ function updateResources() {
   if (state.creativity > 0) resources.push(`creative engines: ${formatNumber(state.creativity)}`);
   if (state.intuition > 0) resources.push(`intuitive cores: ${formatNumber(state.intuition)}`);
   if (state.collective > 0) resources.push(`collective nodes: ${formatNumber(state.collective)}`);
+  
+  const resourcesHash = resources.join('|');
+  if (resourcesHash === lastResourcesHash) return;
+  lastResourcesHash = resourcesHash;
   
   if (resources.length > 0) {
     container.classList.remove('hidden');
@@ -1032,7 +1182,7 @@ function formatNumber(num) {
   if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
   if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
   if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-  if (num >= 1e3) return (num / 1e3).toFixed(1) + 'k';
+  if (num >= 1e4) return (num / 1e4).toFixed(1) + 'k';
   
   return Math.floor(num).toString();
 }
@@ -1091,6 +1241,11 @@ function resetGame() {
 
 // Initialize
 function init() {
+  // Cache all DOM elements
+  elements['insight-line'] = document.getElementById('insight-line');
+  elements['focus-line'] = document.getElementById('focus-line');
+  elements['wisdom-line'] = document.getElementById('wisdom-line');
+  
   loadSettings();
   loadGame();
   
@@ -1107,8 +1262,9 @@ function init() {
   
   document.addEventListener('visibilitychange', handleVisibilityChange);
   
-  // Set up click handler
-  document.getElementById('think-button').onclick = (e) => {
+  // Set up click handler with better performance
+  const thinkButton = document.getElementById('think-button');
+  thinkButton.addEventListener('click', (e) => {
     if (state.gameEnded) return;
     
     if (state.meditationStart) {
@@ -1123,19 +1279,23 @@ function init() {
     
     createParticle(e.clientX, e.clientY, `+${formatNumber(gain)}`);
     
-    updateDisplay();
-  };
+    // Only update critical numbers immediately, full update will happen in next frame
+    updateCriticalNumbers();
+  });
   
   // Settings event listeners
-  document.getElementById('settings-link').onclick = openSettings;
-  document.getElementById('settings-close').onclick = closeSettings;
-  document.getElementById('export-save').onclick = exportSave;
-  document.getElementById('import-save').onclick = importSave;
-  document.getElementById('reset-game').onclick = resetGame;
+  document.getElementById('settings-link').addEventListener('click', openSettings);
+  document.getElementById('settings-close').addEventListener('click', closeSettings);
+  document.getElementById('export-save').addEventListener('click', exportSave);
+  document.getElementById('import-save').addEventListener('click', importSave);
+  document.getElementById('reset-game').addEventListener('click', resetGame);
+  document.getElementById('home-link').addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
   
-  document.getElementById('settings-modal').onclick = function(e) {
+  document.getElementById('settings-modal').addEventListener('click', function(e) {
     if (e.target === this) closeSettings();
-  };
+  });
   
   updateDisplay();
 }
