@@ -30,6 +30,7 @@
     #main-content {
       width: 600px;
       flex-shrink: 0;
+      position: relative;
     }
     
     #story-container {
@@ -81,6 +82,26 @@
     
     .home-link:hover {
       text-decoration: underline;
+    }
+    
+    .click-counter {
+      position: absolute;
+      pointer-events: none;
+      font-size: 1.2em;
+      font-weight: bold;
+      opacity: 0;
+      animation: floatUp 1s ease-out;
+    }
+    
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -136,7 +157,7 @@
   
   <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
     <div>© laurent héroux 2025</div>
-    <div style="margin-top: 2px;">V. 1.17</div>
+    <div style="margin-top: 2px;">V. 1.56</div>
   </div>
 
 <script>
@@ -316,6 +337,19 @@ const GAMBLE_OPTIONS = [
   { name: 'risky', wager: 0.30, minReturn: 0, maxReturn: 3.5, cooldown: 30000 }
 ];
 
+// Upgrade descriptions
+const UPGRADE_DESCRIPTIONS = {
+  'plasticity': 'the mind begins to adapt',
+  'neurons': 'connections multiply',
+  'synapses': 'thoughts cascade automatically',
+  'pattern_recognition': 'deeper meanings emerge from each thought',
+  'memory': 'the past accelerates the present',
+  'logic': 'reason sharpens your focus',
+  'creativity': 'imagination unlocks new dimensions',
+  'intuition': 'instinct guides you forward',
+  'collective': 'many minds think as one'
+};
+
 // Upgrades - Reduced costs for faster early game
 const UPGRADES = [
   {
@@ -488,6 +522,7 @@ function init() {
       state.meditationStart = null;
       state.meditationBonus = 1;
       
+      // Calculate base KPS (without meditation bonus)
       let passive = 0;
       passive += state.plasticity * 0.1;
       passive += state.synapses * 2;
@@ -501,6 +536,7 @@ function init() {
       if (state.phase >= 2) passive *= 2;
       if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
       
+      // Don't apply meditation bonus when away
       const offlineGain = passive * secondsAway;
       
       if (offlineGain > 0) {
@@ -541,6 +577,7 @@ function handleVisibilityChange() {
         const secondsAway = timeAway / 1000;
         
         if (secondsAway > 1) {
+          // Calculate base KPS (without meditation bonus)
           let passive = 0;
           passive += state.plasticity * 0.1;
           passive += state.synapses * 2;
@@ -554,6 +591,7 @@ function handleVisibilityChange() {
           if (state.phase >= 2) passive *= 2;
           if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
           
+          // Don't apply meditation bonus when away
           const offlineGain = passive * secondsAway;
           
           if (offlineGain > 0) {
@@ -644,6 +682,19 @@ function gameLoop() {
   
   checkStories();
   updateDisplay();
+}
+
+function showClickCounter(amount, x, y) {
+  const counter = document.createElement('div');
+  counter.className = 'click-counter';
+  counter.textContent = '+' + formatNumber(Math.floor(amount));
+  counter.style.left = x + 'px';
+  counter.style.top = y + 'px';
+  document.body.appendChild(counter);
+  
+  setTimeout(() => {
+    counter.remove();
+  }, 1000);
 }
 
 // Check and display quests
@@ -756,7 +807,7 @@ function performGamble(option, wagerAmount) {
   updateDisplay();
 }
 
-document.getElementById('think-button').onclick = () => {
+document.getElementById('think-button').onclick = (e) => {
   if (state.gameEnded) return;
   
   if (state.meditationStart) {
@@ -784,6 +835,10 @@ document.getElementById('think-button').onclick = () => {
   
   state.knowledge += gain;
   state.totalClicks++;
+  
+  // Show floating counter
+  const rect = e.target.getBoundingClientRect();
+  showClickCounter(gain, rect.left + rect.width / 2, rect.top);
   
   if (state.totalClicks === 1) {
     document.getElementById('stats-container').classList.remove('hidden');
@@ -964,6 +1019,13 @@ function updateUpgrades() {
           if (state.knowledge >= currentCost) {
             state.knowledge -= currentCost;
             currentUpgrade.effect();
+            
+            // Show upgrade description
+            const desc = UPGRADE_DESCRIPTIONS[currentUpgrade.id];
+            if (desc) {
+              addStory(desc);
+            }
+            
             updateDisplay();
           }
         };
@@ -1079,7 +1141,11 @@ function enlighten() {
     projectsCompleted: {},
     choicesMade: {},
     storyShown: {},
-    gameEnded: false
+    gameEnded: false,
+    questsCompleted: {},
+    activeQuests: [],
+    gambleUnlocked: false,
+    lastGambleTime: 0
   };
   
   addStory('you begin again, carrying the weight of experience');
@@ -1158,7 +1224,6 @@ function endGame(ending) {
 
 function formatNumber(num) {
   if (typeof num === 'string') return num;
-  // No abbreviations - show full numbers
   return Math.floor(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
