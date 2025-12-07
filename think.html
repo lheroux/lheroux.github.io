@@ -123,12 +123,21 @@
       </div>
       
       <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
+      
+      <div id="quest-container" style="margin-top: 20px;"></div>
+      
+      <div id="gamble-container" class="hidden" style="margin-top: 20px;"></div>
     </div>
     
     <div id="story-container"></div>
   </div>
   
   <a class="home-link" href="index.html">home</a>
+  
+  <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
+    <div>© laurent héroux 2025</div>
+    <div style="margin-top: 2px;">V. 1.17</div>
+  </div>
 
 <script>
 // Game state
@@ -156,27 +165,31 @@ let state = {
   projectsCompleted: {},
   choicesMade: {},
   storyShown: {},
-  gameEnded: false
+  gameEnded: false,
+  questsCompleted: {},
+  activeQuests: [],
+  gambleUnlocked: false,
+  lastGambleTime: 0
 };
 
-// Story beats
+// Story events - Adjusted thresholds
 const STORIES = [
-  { at: 10, id: 'awareness', text: 'awareness emerges from the void' },
-  { at: 50, id: 'plasticity', text: 'your mind begins to reshape itself' },
-  { at: 200, id: 'neurons', text: 'neural pathways form and strengthen' },
-  { at: 1000, id: 'patterns', text: 'patterns reveal themselves in the chaos' },
-  { at: 5000, id: 'memory', text: 'memory allows you to build upon the past' },
-  { at: 25000, id: 'question', text: 'but what are you becoming?' },
-  { at: 100000, id: 'others', text: 'you sense others like you, thinking, growing' },
-  { at: 500000, id: 'collective_sense', text: 'the boundary between minds grows thin' },
-  { at: 2000000, id: 'approach', text: 'something approaches. a choice must be made.' }
+  { at: 5, id: 'awareness', text: 'awareness emerges from the void' },
+  { at: 25, id: 'plasticity', text: 'your mind begins to reshape itself' },
+  { at: 100, id: 'neurons', text: 'neural pathways form and strengthen' },
+  { at: 500, id: 'patterns', text: 'patterns reveal themselves in the chaos' },
+  { at: 2500, id: 'memory', text: 'memory allows you to build upon the past' },
+  { at: 12000, id: 'question', text: 'but what are you becoming?' },
+  { at: 50000, id: 'others', text: 'you sense others like you, thinking, growing' },
+  { at: 250000, id: 'collective_sense', text: 'the boundary between minds grows thin' },
+  { at: 1000000, id: 'approach', text: 'something approaches. a choice must be made.' }
 ];
 
-// Major choices
+// Major choices - Adjusted thresholds
 const CHOICES = [
   {
     id: 'first_path',
-    showAt: 25000,
+    showAt: 12000,
     question: 'how will you grow?',
     options: [
       { id: 'logic', text: 'through reason and analysis', effect: () => {
@@ -198,7 +211,7 @@ const CHOICES = [
   },
   {
     id: 'collective_choice',
-    showAt: 500000,
+    showAt: 250000,
     requiresProject: 'network',
     question: 'others reach out. do you...',
     options: [
@@ -216,7 +229,7 @@ const CHOICES = [
   },
   {
     id: 'final_choice',
-    showAt: 5000000,
+    showAt: 2500000,
     requiresChoice: 'collective_choice',
     question: 'the universe offers transcendence. but at what cost?',
     options: [
@@ -233,12 +246,82 @@ const CHOICES = [
   }
 ];
 
-// Upgrades
+// Side Quests
+const QUESTS = [
+  {
+    id: 'first_hundred',
+    trigger: 100,
+    text: 'a hundred thoughts... what if you could think a thousand?',
+    reward: 200,
+    accept: () => {
+      state.knowledge += 200;
+      state.questsCompleted['first_hundred'] = true;
+      addStory('the first hundred became a thousand');
+    }
+  },
+  {
+    id: 'rapid_fire',
+    trigger: 500,
+    requirement: () => state.totalClicks >= 50,
+    text: 'your mind races... can you maintain this velocity?',
+    reward: 1000,
+    accept: () => {
+      state.knowledge += 1000;
+      state.questsCompleted['rapid_fire'] = true;
+      addStory('velocity becomes grace');
+    }
+  },
+  {
+    id: 'passive_master',
+    trigger: 3000,
+    requirement: () => (state.plasticity + state.synapses + state.neurons) >= 10,
+    text: 'thoughts flow without effort now...',
+    reward: 5000,
+    accept: () => {
+      state.knowledge += 5000;
+      state.questsCompleted['passive_master'] = true;
+      addStory('automation births freedom');
+    }
+  },
+  {
+    id: 'meditation_seeker',
+    trigger: 40000,
+    requirement: () => state.projectsCompleted['meditation'],
+    text: 'stillness calls to you...',
+    reward: 20000,
+    accept: () => {
+      state.knowledge += 20000;
+      state.questsCompleted['meditation_seeker'] = true;
+      addStory('in silence, abundance');
+    }
+  },
+  {
+    id: 'risk_taker',
+    trigger: 100000,
+    requirement: () => state.gambleUnlocked,
+    text: 'fortune favors the bold...',
+    reward: 50000,
+    accept: () => {
+      state.knowledge += 50000;
+      state.questsCompleted['risk_taker'] = true;
+      addStory('uncertainty yields certainty');
+    }
+  }
+];
+
+// Gambling system
+const GAMBLE_OPTIONS = [
+  { name: 'cautious', wager: 0.05, minReturn: 0.8, maxReturn: 1.3, cooldown: 10000 },
+  { name: 'balanced', wager: 0.15, minReturn: 0.5, maxReturn: 2.0, cooldown: 20000 },
+  { name: 'risky', wager: 0.30, minReturn: 0, maxReturn: 3.5, cooldown: 30000 }
+];
+
+// Upgrades - Reduced costs for faster early game
 const UPGRADES = [
   {
     id: 'plasticity',
     name: 'plasticity',
-    baseCost: 15,
+    baseCost: 10,
     costMultiplier: 1.15,
     effect: () => { state.plasticity += 1; },
     showAt: 0
@@ -246,35 +329,35 @@ const UPGRADES = [
   {
     id: 'neurons',
     name: 'neuron',
-    baseCost: 100,
+    baseCost: 50,
     costMultiplier: 1.12,
     effect: () => { state.neurons += 1; },
-    showAt: 50
+    showAt: 25
   },
   {
     id: 'synapses',
     name: 'synapse factory',
-    baseCost: 1200,
+    baseCost: 500,
     costMultiplier: 1.14,
     effect: () => { state.synapses += 1; },
-    showAt: 500
+    showAt: 200
   },
   {
     id: 'pattern_recognition',
     name: 'pattern recognition',
-    baseCost: 8500,
+    baseCost: 3500,
     costMultiplier: 1.16,
     effect: () => { state.pattern_recognition += 1; },
-    showAt: 5000,
+    showAt: 2000,
     requiresProject: 'patterns'
   },
   {
     id: 'memory',
     name: 'memory bank',
-    baseCost: 45000,
+    baseCost: 18000,
     costMultiplier: 1.13,
     effect: () => { state.memory += 1; },
-    showAt: 25000,
+    showAt: 10000,
     requiresProject: 'memory_proj'
   },
   {
@@ -315,27 +398,27 @@ const UPGRADES = [
   }
 ];
 
-// Projects
+// Projects - Reduced costs
 const PROJECTS = [
   {
     id: 'patterns',
     name: 'PATTERN ANALYSIS',
-    cost: 2500,
-    showAt: 1000,
+    cost: 1000,
+    showAt: 400,
     effect: () => { addStory('patterns within patterns within patterns'); }
   },
   {
     id: 'memory_proj',
     name: 'MEMORY FORMATION',
-    cost: 15000,
-    showAt: 10000,
+    cost: 6000,
+    showAt: 4000,
     effect: () => { addStory('the past crystallizes'); }
   },
   {
     id: 'insights',
     name: 'INSIGHT GENERATION',
-    cost: 50000,
-    showAt: 30000,
+    cost: 20000,
+    showAt: 12000,
     effect: () => { 
       document.getElementById('insight-display').classList.remove('hidden');
       addStory('beneath knowledge lies insight');
@@ -344,8 +427,8 @@ const PROJECTS = [
   {
     id: 'meditation',
     name: 'MEDITATION',
-    cost: 75000,
-    showAt: 50000,
+    cost: 35000,
+    showAt: 20000,
     requiresProject: 'insights',
     effect: () => { 
       document.getElementById('meditation-container').classList.remove('hidden');
@@ -353,10 +436,22 @@ const PROJECTS = [
     }
   },
   {
+    id: 'gamble',
+    name: 'UNCERTAINTY PRINCIPLE',
+    cost: 80000,
+    showAt: 50000,
+    requiresProject: 'meditation',
+    effect: () => {
+      state.gambleUnlocked = true;
+      document.getElementById('gamble-container').classList.remove('hidden');
+      addStory('risk and reward intertwine');
+    }
+  },
+  {
     id: 'network',
     name: 'NEURAL NETWORKING',
-    cost: 500000,
-    showAt: 250000,
+    cost: 250000,
+    showAt: 120000,
     requiresChoice: 'first_path',
     effect: () => { 
       addStory('you are no longer alone');
@@ -365,9 +460,9 @@ const PROJECTS = [
   {
     id: 'wisdom_proj',
     name: 'WISDOM SYNTHESIS',
-    cost: 2000000,
+    cost: 1000000,
     insightCost: 500,
-    showAt: 1000000,
+    showAt: 500000,
     requiresProject: 'network',
     effect: () => { 
       document.getElementById('wisdom-display').classList.remove('hidden');
@@ -551,6 +646,116 @@ function gameLoop() {
   updateDisplay();
 }
 
+// Check and display quests
+function checkQuests() {
+  QUESTS.forEach(quest => {
+    if (state.questsCompleted[quest.id]) return;
+    if (state.activeQuests.includes(quest.id)) return;
+    
+    if (state.knowledge >= quest.trigger) {
+      if (!quest.requirement || quest.requirement()) {
+        state.activeQuests.push(quest.id);
+        updateQuestDisplay();
+      }
+    }
+  });
+}
+
+function updateQuestDisplay() {
+  const container = document.getElementById('quest-container');
+  container.innerHTML = '';
+  
+  state.activeQuests.forEach(questId => {
+    const quest = QUESTS.find(q => q.id === questId);
+    if (!quest || state.questsCompleted[questId]) return;
+    
+    const questLine = document.createElement('div');
+    questLine.className = 'line';
+    questLine.style.fontStyle = 'italic';
+    questLine.style.opacity = '0.8';
+    
+    const questText = document.createElement('span');
+    questText.textContent = quest.text + ' ';
+    
+    const acceptLink = document.createElement('span');
+    acceptLink.className = 'clickable';
+    acceptLink.textContent = `[accept: +${formatNumber(quest.reward)}]`;
+    acceptLink.onclick = () => {
+      quest.accept();
+      state.activeQuests = state.activeQuests.filter(id => id !== questId);
+      updateQuestDisplay();
+      updateDisplay();
+    };
+    
+    questLine.appendChild(questText);
+    questLine.appendChild(acceptLink);
+    container.appendChild(questLine);
+  });
+}
+
+function updateGambleDisplay() {
+  if (!state.gambleUnlocked) return;
+  
+  const container = document.getElementById('gamble-container');
+  const now = Date.now();
+  const timeSinceGamble = now - state.lastGambleTime;
+  
+  container.innerHTML = '<div class="line" style="font-weight: bold; margin-bottom: 5px;">uncertainty market</div>';
+  
+  GAMBLE_OPTIONS.forEach(option => {
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.style.marginLeft = '10px';
+    
+    const wagerAmount = Math.floor(state.knowledge * option.wager);
+    const canGamble = timeSinceGamble >= option.cooldown && wagerAmount > 0;
+    
+    const link = document.createElement('span');
+    link.className = canGamble ? 'clickable' : 'clickable disabled';
+    link.textContent = option.name;
+    
+    const info = document.createTextNode(` — wager ${formatNumber(wagerAmount)} (${Math.floor(option.wager * 100)}%) — return ${option.minReturn}x to ${option.maxReturn}x`);
+    
+    if (canGamble) {
+      link.onclick = () => {
+        performGamble(option, wagerAmount);
+      };
+    }
+    
+    line.appendChild(link);
+    line.appendChild(info);
+    
+    if (!canGamble && timeSinceGamble < option.cooldown) {
+      const cooldownRemaining = Math.ceil((option.cooldown - timeSinceGamble) / 1000);
+      const cooldownText = document.createTextNode(` [cooldown: ${cooldownRemaining}s]`);
+      line.appendChild(cooldownText);
+    }
+    
+    container.appendChild(line);
+  });
+}
+
+function performGamble(option, wagerAmount) {
+  state.knowledge -= wagerAmount;
+  state.lastGambleTime = Date.now();
+  
+  const returnMultiplier = option.minReturn + Math.random() * (option.maxReturn - option.minReturn);
+  const returnAmount = Math.floor(wagerAmount * returnMultiplier);
+  
+  state.knowledge += returnAmount;
+  
+  const profit = returnAmount - wagerAmount;
+  if (profit > 0) {
+    addStory(`uncertainty resolved: +${formatNumber(profit)}`);
+  } else if (profit < 0) {
+    addStory(`uncertainty resolved: ${formatNumber(profit)}`);
+  } else {
+    addStory('uncertainty resolved: equilibrium');
+  }
+  
+  updateDisplay();
+}
+
 document.getElementById('think-button').onclick = () => {
   if (state.gameEnded) return;
   
@@ -659,6 +864,9 @@ function updateDisplay() {
   updateResources();
   updateChoices();
   updateMeditation();
+  checkQuests();
+  updateQuestDisplay();
+  updateGambleDisplay();
 }
 
 function updateChoices() {
@@ -950,9 +1158,8 @@ function endGame(ending) {
 
 function formatNumber(num) {
   if (typeof num === 'string') return num;
-  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
-  return Math.floor(num).toString();
+  // No abbreviations - show full numbers
+  return Math.floor(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 function render() {
