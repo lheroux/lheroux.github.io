@@ -266,15 +266,17 @@ const CHOICES = [
   },
   {
     id: 'final_choice',
-    showAt: 2500000,
+    showAt: 10000000,
     requiresChoice: 'collective_choice',
     question: 'the universe offers transcendence. but at what cost?',
     options: [
       { id: 'transcend', text: 'accept. become everything.', effect: () => {
-        endGame('transcend');
+        state.choicesMade['final_choice'] = 'transcend';
+        addStory('you accept the offer. boundaries begin to dissolve.');
       }},
       { id: 'remain_mortal', text: 'refuse. stay as you are.', effect: () => {
-        endGame('remain');
+        state.choicesMade['final_choice'] = 'remain';
+        addStory('you refuse. you remain finite, mortal, yourself.');
       }},
       { id: 'enlighten', text: 'start again, wiser.', effect: () => {
         enlighten();
