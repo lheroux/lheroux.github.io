@@ -11,19 +11,30 @@
     
     body {
       margin: 0;
-      padding: 40px 20px;
+      padding: 20px;
       font-family: "Times New Roman", serif;
       background: #fff;
       color: #000;
-      line-height: 1.8;
+      line-height: 1.6;
       font-size: 14px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
     
-    #game-container {
-      max-width: 600px;
+    #game-wrapper {
+      display: flex;
+      gap: 80px;
+      max-width: 1100px;
       margin: 0 auto;
+      justify-content: center;
+    }
+    
+    #main-content {
+      width: 600px;
+      flex-shrink: 0;
+    }
+    
+    #story-container {
+      width: 280px;
+      flex-shrink: 0;
     }
     
     .clickable {
@@ -32,7 +43,6 @@
       display: inline;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
-      transition: opacity 0.1s;
     }
     
     .clickable:hover {
@@ -41,239 +51,86 @@
     
     .clickable:active {
       opacity: 0.7;
-      transform: scale(0.98);
     }
     
     .line {
-      margin: 3px 0;
-      transition: opacity 0.2s ease;
+      margin: 5px 0;
     }
     
     .hidden {
-      display: none !important;
+      display: none;
     }
     
     .disabled {
-      opacity: 0.3;
-      cursor: not-allowed !important;
+      opacity: 0.4;
+      cursor: default !important;
     }
     
     .disabled:hover {
       text-decoration: none !important;
     }
     
-    .section-gap {
-      margin-top: 20px;
-    }
-    
-    .indent {
-      margin-left: 20px;
-    }
-    
-    .story-text {
-      font-style: italic;
-      opacity: 0.6;
-    }
-    
-    .footer-link {
+    .home-link {
       position: fixed;
       bottom: 10px;
+      right: 10px;
       font-size: 0.9em;
       text-decoration: none;
-      color: #000;
-      cursor: pointer;
+      color: black;
     }
     
-    #settings-link {
-      left: 10px;
-    }
-    
-    #home-link {
-      right: 10px;
-    }
-    
-    #copyright {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.75em;
-      opacity: 0.5;
-      color: #000;
-      pointer-events: none;
-    }
-    
-    #save-indicator {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 0.8em;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    
-    .settings-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    
-    .settings-content {
-      background: #fff;
-      padding: 30px;
-      max-width: 400px;
-      width: 90%;
-    }
-    
-    .setting-item {
-      margin: 15px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .click-particle {
-      position: fixed;
-      pointer-events: none;
-      font-size: 1em;
-      color: #000;
-      animation: floatUp 1s ease-out forwards;
-      z-index: 999;
-    }
-    
-    @keyframes floatUp {
-      from {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateY(-40px);
-      }
-    }
-    
-    input[type="checkbox"] {
-      cursor: pointer;
-    }
-    
-    .milestone-achieved {
-      color: #444;
-      font-style: italic;
-      opacity: 0.7;
-    }
-    
-    .boost-active {
-      color: #000;
-      font-weight: bold;
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 0.7; }
-      50% { opacity: 1; }
-      100% { opacity: 0.7; }
+    .home-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-  <div id="game-container">
-    <div class="line">
-      <span class="clickable" id="think-button">think</span>
-      <span id="enlightenment-text"></span>
+  <div id="game-wrapper">
+    <div id="main-content">
+      <div class="line">
+        <span class="clickable" id="think-button">think</span>
+      </div>
+      
+      <div class="line" style="margin-top: 15px;">
+        knowledge: <span id="knowledge-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="insight-display">
+        insights: <span id="insight-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="focus-display">
+        focus: <span id="focus-value">0</span>
+      </div>
+      
+      <div class="line hidden" id="wisdom-display">
+        wisdom: <span id="wisdom-value">0</span>
+      </div>
+      
+      <div id="choice-container" style="margin-top: 15px;"></div>
+      
+      <div id="upgrade-container" style="margin-top: 15px;"></div>
+      
+      <div id="project-container" style="margin-top: 15px;"></div>
+      
+      <div id="meditation-container" class="hidden" style="margin-top: 15px;"></div>
+      
+      <div id="stats-container" class="hidden" style="margin-top: 20px;">
+        <div class="line">knowledge per click: <span id="click-power">1</span></div>
+        <div class="line">knowledge per second: <span id="kps">0</span></div>
+        <div class="line">total thoughts: <span id="total-clicks">0</span></div>
+      </div>
+      
+      <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
     </div>
     
-    <div class="line section-gap">
-      knowledge: <span id="knowledge-value">0</span>
-    </div>
-    
-    <div class="line">
-      knowledge per second: <span id="kps-value">0</span>
-    </div>
-    
-    <div class="line">
-      knowledge per click: <span id="click-power">1</span>
-    </div>
-    
-    <div class="line hidden" id="insight-line">
-      insights: <span id="insight-value">0</span>
-    </div>
-    
-    <div class="line hidden" id="focus-line">
-      focus: <span id="focus-value">0</span>
-    </div>
-    
-    <div class="line hidden" id="wisdom-line">
-      wisdom: <span id="wisdom-value">0</span>
-    </div>
-    
-    <div id="choice-container" class="section-gap"></div>
-    
-    <div id="meditation-container" class="hidden section-gap"></div>
-    
-    <div id="project-container" class="section-gap"></div>
-    
-    <div id="upgrade-container" class="section-gap"></div>
-    
-    <div id="resource-container" class="hidden section-gap"></div>
-    
-    <div id="milestone-container" class="section-gap"></div>
-    
-    <div id="boost-container" class="hidden section-gap"></div>
-    
-    <div id="challenge-container" class="hidden section-gap"></div>
-    
-    <div id="story-container" class="section-gap"></div>
+    <div id="story-container"></div>
   </div>
   
-  <div id="settings-link" class="footer-link clickable">settings</div>
-  <div id="home-link" class="footer-link clickable">home</div>
-  <div id="copyright">© laurent héroux 2025</div>
-  
-  <div id="save-indicator">saved</div>
-  
-  <div id="settings-modal" class="settings-modal">
-    <div class="settings-content">
-      <div class="line" style="font-weight: bold; margin-bottom: 20px;">settings</div>
-      
-      <div class="setting-item">
-        <div>auto-save</div>
-        <input type="checkbox" id="setting-autosave" checked>
-      </div>
-      
-      <div class="setting-item">
-        <div>offline progress</div>
-        <input type="checkbox" id="setting-offline" checked>
-      </div>
-      
-      <div class="setting-item">
-        <div>click particles</div>
-        <input type="checkbox" id="setting-particles" checked>
-      </div>
-      
-      <div class="line" style="margin-top: 30px; text-align: center;">
-        <span class="clickable" id="export-save" style="margin-right: 20px;">export</span>
-        <span class="clickable" id="import-save" style="margin-right: 20px;">import</span>
-        <span class="clickable" id="reset-game" style="opacity: 0.5;">reset</span>
-      </div>
-      
-      <div class="line" style="margin-top: 20px; text-align: center;">
-        <span class="clickable" id="settings-close">close</span>
-      </div>
-    </div>
-  </div>
+  <a class="home-link" href="index.html">home</a>
 
 <script>
-// DOM element cache
-const elements = {};
-
 // Game state
 let state = {
   knowledge: 0,
@@ -299,69 +156,810 @@ let state = {
   projectsCompleted: {},
   choicesMade: {},
   storyShown: {},
-  gameEnded: false,
-  lastUpdate: Date.now(),
-  lastSave: Date.now(),
-  lastActiveTime: Date.now(),
-  milestones: {},
-  activeBoosts: {},
-  currentChallenge: null,
-  challengeStart: null,
-  clickStreak: 0,
-  lastClickTime: Date.now(),
-  comboMultiplier: 1,
-  lastComboTime: Date.now(),
-  breakthroughs: {},
-  thoughts: 0
+  gameEnded: false
 };
 
-// Cache for display updates
-let lastDisplayValues = {};
-let lastUpdateTime = 0;
-const DISPLAY_UPDATE_INTERVAL = 100;
-
-// Settings
-let settings = {
-  autoSave: true,
-  offlineProgress: true,
-  particles: true
-};
-
-// MILESTONES - Achievement system that gives permanent bonuses
-const MILESTONES = [
-  { id: 'first_100', name: '100 Knowledge', requirement: 100, reward: 'doubles base click power', effect: () => {} },
-  { id: 'click_100', name: '100 Clicks', requirement: 100, type: 'clicks', reward: '+0.5 click power per neuron', effect: () => {} },
-  { id: 'first_1k', name: '1,000 Knowledge', requirement: 1000, reward: '+10% to all knowledge generation', effect: () => {} },
-  { id: 'first_10k', name: '10,000 Knowledge', requirement: 10000, reward: 'unlocks 2x boost button', effect: () => {} },
-  { id: 'meditate_5min', name: '5 Minute Meditation', requirement: 300, type: 'meditation', reward: '+25% meditation bonus cap', effect: () => {} },
-  { id: 'enlightenment_1', name: 'First Enlightenment', requirement: 1, type: 'enlightenments', reward: 'keeps 10% of wisdom on enlightenment', effect: () => {} }
+// Story beats
+const STORIES = [
+  { at: 10, id: 'awareness', text: 'awareness emerges from the void' },
+  { at: 50, id: 'plasticity', text: 'your mind begins to reshape itself' },
+  { at: 200, id: 'neurons', text: 'neural pathways form and strengthen' },
+  { at: 1000, id: 'patterns', text: 'patterns reveal themselves in the chaos' },
+  { at: 5000, id: 'memory', text: 'memory allows you to build upon the past' },
+  { at: 25000, id: 'question', text: 'but what are you becoming?' },
+  { at: 100000, id: 'others', text: 'you sense others like you, thinking, growing' },
+  { at: 500000, id: 'collective_sense', text: 'the boundary between minds grows thin' },
+  { at: 2000000, id: 'approach', text: 'something approaches. a choice must be made.' }
 ];
 
-// BOOSTS - Temporary multipliers
-const BOOSTS = [
-  { 
-    id: 'clarity', 
-    name: 'CLARITY', 
-    cost: 25000, 
-    duration: 30, 
-    multiplier: 2,
-    description: 'double knowledge generation for 30 seconds',
-    unlockAt: 10000
+// Major choices
+const CHOICES = [
+  {
+    id: 'first_path',
+    showAt: 25000,
+    question: 'how will you grow?',
+    options: [
+      { id: 'logic', text: 'through reason and analysis', effect: () => {
+        state.path = 'logic';
+        state.choicesMade['first_path'] = 'logic';
+        addStory('you choose the path of logic');
+      }},
+      { id: 'creativity', text: 'through imagination and creation', effect: () => {
+        state.path = 'creativity';
+        state.choicesMade['first_path'] = 'creativity';
+        addStory('you choose the path of creativity');
+      }},
+      { id: 'intuition', text: 'through feeling and instinct', effect: () => {
+        state.path = 'intuition';
+        state.choicesMade['first_path'] = 'intuition';
+        addStory('you choose the path of intuition');
+      }}
+    ]
   },
-  { 
-    id: 'flow', 
-    name: 'FLOW', 
-    cost: 100000, 
-    duration: 45, 
-    multiplier: 3,
-    description: 'triple click power for 45 seconds',
-    unlockAt: 50000,
-    requiresProject: 'insights'
+  {
+    id: 'collective_choice',
+    showAt: 500000,
+    requiresProject: 'network',
+    question: 'others reach out. do you...',
+    options: [
+      { id: 'join', text: 'merge with the collective', effect: () => {
+        state.choicesMade['collective_choice'] = 'join';
+        state.phase = 2;
+        addStory('you dissolve into the many');
+      }},
+      { id: 'remain', text: 'remain separate', effect: () => {
+        state.choicesMade['collective_choice'] = 'remain';
+        state.phase = 2;
+        addStory('you hold onto yourself');
+      }}
+    ]
   },
-  { 
-    id: 'synergy', 
-    name: 'SYNERGY', 
-    cost: 500000, 
-    duration: 60, 
-    multiplier: 2,
-    description: 'double both passive and active
+  {
+    id: 'final_choice',
+    showAt: 5000000,
+    requiresChoice: 'collective_choice',
+    question: 'the universe offers transcendence. but at what cost?',
+    options: [
+      { id: 'transcend', text: 'accept. become everything.', effect: () => {
+        endGame('transcend');
+      }},
+      { id: 'remain_mortal', text: 'refuse. stay as you are.', effect: () => {
+        endGame('remain');
+      }},
+      { id: 'enlighten', text: 'start again, wiser.', effect: () => {
+        enlighten();
+      }}
+    ]
+  }
+];
+
+// Upgrades
+const UPGRADES = [
+  {
+    id: 'plasticity',
+    name: 'plasticity',
+    baseCost: 15,
+    costMultiplier: 1.15,
+    effect: () => { state.plasticity += 1; },
+    showAt: 0
+  },
+  {
+    id: 'neurons',
+    name: 'neuron',
+    baseCost: 100,
+    costMultiplier: 1.12,
+    effect: () => { state.neurons += 1; },
+    showAt: 50
+  },
+  {
+    id: 'synapses',
+    name: 'synapse factory',
+    baseCost: 1200,
+    costMultiplier: 1.14,
+    effect: () => { state.synapses += 1; },
+    showAt: 500
+  },
+  {
+    id: 'pattern_recognition',
+    name: 'pattern recognition',
+    baseCost: 8500,
+    costMultiplier: 1.16,
+    effect: () => { state.pattern_recognition += 1; },
+    showAt: 5000,
+    requiresProject: 'patterns'
+  },
+  {
+    id: 'memory',
+    name: 'memory bank',
+    baseCost: 45000,
+    costMultiplier: 1.13,
+    effect: () => { state.memory += 1; },
+    showAt: 25000,
+    requiresProject: 'memory_proj'
+  },
+  {
+    id: 'logic',
+    name: 'logic processor',
+    baseCost: 150000,
+    costMultiplier: 1.17,
+    effect: () => { state.logic += 1; },
+    showAt: 100000,
+    requiresPath: 'logic'
+  },
+  {
+    id: 'creativity',
+    name: 'creative engine',
+    baseCost: 150000,
+    costMultiplier: 1.18,
+    effect: () => { state.creativity += 1; },
+    showAt: 100000,
+    requiresPath: 'creativity'
+  },
+  {
+    id: 'intuition',
+    name: 'intuitive core',
+    baseCost: 150000,
+    costMultiplier: 1.16,
+    effect: () => { state.intuition += 1; },
+    showAt: 100000,
+    requiresPath: 'intuition'
+  },
+  {
+    id: 'collective',
+    name: 'collective node',
+    baseCost: 1500000,
+    costMultiplier: 1.20,
+    effect: () => { state.collective += 1; },
+    showAt: 500000,
+    requiresProject: 'network'
+  }
+];
+
+// Projects
+const PROJECTS = [
+  {
+    id: 'patterns',
+    name: 'PATTERN ANALYSIS',
+    cost: 2500,
+    showAt: 1000,
+    effect: () => { addStory('patterns within patterns within patterns'); }
+  },
+  {
+    id: 'memory_proj',
+    name: 'MEMORY FORMATION',
+    cost: 15000,
+    showAt: 10000,
+    effect: () => { addStory('the past crystallizes'); }
+  },
+  {
+    id: 'insights',
+    name: 'INSIGHT GENERATION',
+    cost: 50000,
+    showAt: 30000,
+    effect: () => { 
+      document.getElementById('insight-display').classList.remove('hidden');
+      addStory('beneath knowledge lies insight');
+    }
+  },
+  {
+    id: 'meditation',
+    name: 'MEDITATION',
+    cost: 75000,
+    showAt: 50000,
+    requiresProject: 'insights',
+    effect: () => { 
+      document.getElementById('meditation-container').classList.remove('hidden');
+      addStory('in silence, power grows');
+    }
+  },
+  {
+    id: 'network',
+    name: 'NEURAL NETWORKING',
+    cost: 500000,
+    showAt: 250000,
+    requiresChoice: 'first_path',
+    effect: () => { 
+      addStory('you are no longer alone');
+    }
+  },
+  {
+    id: 'wisdom_proj',
+    name: 'WISDOM SYNTHESIS',
+    cost: 2000000,
+    insightCost: 500,
+    showAt: 1000000,
+    requiresProject: 'network',
+    effect: () => { 
+      document.getElementById('wisdom-display').classList.remove('hidden');
+      addStory('wisdom is knowledge tempered by experience');
+    }
+  }
+];
+
+// Initialize
+function init() {
+  addStory('you are. you think. therefore...');
+  
+  // Load saved state if it exists
+  const saved = localStorage.getItem('thinkGameState');
+  if (saved) {
+    try {
+      const savedState = JSON.parse(saved);
+      const timeAway = Date.now() - savedState.lastSave;
+      const secondsAway = timeAway / 1000;
+      
+      Object.assign(state, savedState);
+      state.startTime = Date.now();
+      state.meditationStart = null;
+      state.meditationBonus = 1;
+      
+      let passive = 0;
+      passive += state.plasticity * 0.1;
+      passive += state.synapses * 2;
+      passive += state.memory * 25;
+      passive += state.logic * 100;
+      passive += state.collective * 500;
+      
+      if (state.path === 'logic') passive *= 1.3;
+      if (state.path === 'creativity') passive *= 1.1;
+      if (state.path === 'intuition') passive *= 1.2;
+      if (state.phase >= 2) passive *= 2;
+      if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
+      
+      const offlineGain = passive * secondsAway;
+      
+      if (offlineGain > 0) {
+        state.knowledge += offlineGain;
+      }
+      
+      if (state.creativity > 0) {
+        const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+        state.insights += insightRate * secondsAway;
+      }
+      
+      if (state.intuition > 0) {
+        const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+        state.focus += focusRate * secondsAway;
+      }
+      
+      if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+        state.wisdom += state.insights * 0.0001 * secondsAway;
+      }
+    } catch (e) {
+      console.error('Failed to load save:', e);
+    }
+  }
+  
+  render();
+  setInterval(gameLoop, 100);
+  setInterval(saveGame, 60000);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+}
+
+function handleVisibilityChange() {
+  if (!document.hidden) {
+    const saved = localStorage.getItem('thinkGameState');
+    if (saved) {
+      try {
+        const savedState = JSON.parse(saved);
+        const timeAway = Date.now() - savedState.lastSave;
+        const secondsAway = timeAway / 1000;
+        
+        if (secondsAway > 1) {
+          let passive = 0;
+          passive += state.plasticity * 0.1;
+          passive += state.synapses * 2;
+          passive += state.memory * 25;
+          passive += state.logic * 100;
+          passive += state.collective * 500;
+          
+          if (state.path === 'logic') passive *= 1.3;
+          if (state.path === 'creativity') passive *= 1.1;
+          if (state.path === 'intuition') passive *= 1.2;
+          if (state.phase >= 2) passive *= 2;
+          if (state.enlightenments > 0) passive *= Math.pow(1.5, state.enlightenments);
+          
+          const offlineGain = passive * secondsAway;
+          
+          if (offlineGain > 0) {
+            state.knowledge += offlineGain;
+          }
+          
+          if (state.creativity > 0) {
+            const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+            state.insights += insightRate * secondsAway;
+          }
+          
+          if (state.intuition > 0) {
+            const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+            state.focus += focusRate * secondsAway;
+          }
+          
+          if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+            state.wisdom += state.insights * 0.0001 * secondsAway;
+          }
+          
+          updateDisplay();
+        }
+      } catch (e) {
+        console.error('Failed to calculate offline progress:', e);
+      }
+    }
+  }
+}
+
+function saveGame() {
+  try {
+    const saveState = {
+      ...state,
+      lastSave: Date.now()
+    };
+    localStorage.setItem('thinkGameState', JSON.stringify(saveState));
+    addStory('saved');
+  } catch (e) {
+    console.error('Failed to save:', e);
+  }
+}
+
+function gameLoop() {
+  if (state.gameEnded) return;
+  
+  let passive = 0;
+  passive += state.plasticity * 0.1;
+  passive += state.synapses * 2;
+  passive += state.memory * 25;
+  passive += state.logic * 100;
+  passive += state.collective * 500;
+  
+  if (state.path === 'logic') passive *= 1.3;
+  if (state.path === 'creativity') passive *= 1.1;
+  if (state.path === 'intuition') passive *= 1.2;
+  
+  if (state.phase >= 2) passive *= 2;
+  
+  if (state.enlightenments > 0) {
+    passive *= Math.pow(1.5, state.enlightenments);
+  }
+  
+  if (state.meditationStart) {
+    const meditationSeconds = (Date.now() - state.meditationStart) / 1000;
+    state.meditationBonus = 1 + Math.min(meditationSeconds * 0.1, 20);
+  }
+  
+  passive *= state.meditationBonus;
+  
+  if (passive > 0) {
+    state.knowledge += passive / 10;
+  }
+  
+  if (state.creativity > 0) {
+    const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+    state.insights += insightRate / 10;
+  }
+  
+  if (state.intuition > 0) {
+    const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
+    state.focus += focusRate / 10;
+    document.getElementById('focus-display').classList.remove('hidden');
+  }
+  
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+    state.wisdom += state.insights * 0.0001 / 10;
+  }
+  
+  checkStories();
+  updateDisplay();
+}
+
+document.getElementById('think-button').onclick = () => {
+  if (state.gameEnded) return;
+  
+  if (state.meditationStart) {
+    state.meditationStart = null;
+    state.meditationBonus = 1;
+  }
+  
+  let gain = 1;
+  gain += state.neurons * 0.5;
+  gain += state.pattern_recognition * 5;
+  
+  if (state.path === 'logic') gain *= 1.5;
+  if (state.path === 'intuition') gain *= 1.3;
+  if (state.path === 'creativity') gain *= 1.2;
+  
+  if (state.phase >= 2) gain *= 2;
+  
+  if (state.enlightenments > 0) {
+    gain *= Math.pow(1.5, state.enlightenments);
+  }
+  
+  if (state.focus > 0) {
+    gain *= (1 + state.focus * 0.001);
+  }
+  
+  state.knowledge += gain;
+  state.totalClicks++;
+  
+  if (state.totalClicks === 1) {
+    document.getElementById('stats-container').classList.remove('hidden');
+  }
+  
+  updateDisplay();
+};
+
+function startMeditation() {
+  if (!state.meditationStart) {
+    state.meditationStart = Date.now();
+    addStory('you enter stillness');
+    updateDisplay();
+  }
+}
+
+function checkStories() {
+  STORIES.forEach(story => {
+    if (!state.storyShown[story.id] && state.knowledge >= story.at) {
+      state.storyShown[story.id] = true;
+      addStory(story.text);
+    }
+  });
+}
+
+function addStory(text) {
+  const container = document.getElementById('story-container');
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.style.fontStyle = 'italic';
+  line.style.opacity = '0.7';
+  line.textContent = text;
+  
+  container.insertBefore(line, container.firstChild);
+  
+  const messages = container.children;
+  for (let i = 0; i < messages.length; i++) {
+    if (i < 4) {
+      messages[i].style.opacity = '0.7';
+    } else {
+      messages[i].style.opacity = Math.max(0.1, 0.7 - (i - 3) * 0.15);
+    }
+  }
+  
+  while (container.children.length > 8) {
+    container.removeChild(container.lastChild);
+  }
+}
+
+function updateDisplay() {
+  document.getElementById('knowledge-value').textContent = formatNumber(Math.floor(state.knowledge));
+  document.getElementById('insight-value').textContent = formatNumber(Math.floor(state.insights));
+  document.getElementById('focus-value').textContent = formatNumber(Math.floor(state.focus));
+  document.getElementById('wisdom-value').textContent = formatNumber(Math.floor(state.wisdom));
+  
+  let kps = state.plasticity * 0.1 + state.synapses * 2 + state.memory * 25 + state.logic * 100 + state.collective * 500;
+  if (state.path === 'logic') kps *= 1.3;
+  if (state.path === 'creativity') kps *= 1.1;
+  if (state.path === 'intuition') kps *= 1.2;
+  if (state.phase >= 2) kps *= 2;
+  if (state.enlightenments > 0) kps *= Math.pow(1.5, state.enlightenments);
+  kps *= state.meditationBonus;
+  
+  let clickPower = 1 + state.neurons * 0.5 + state.pattern_recognition * 5;
+  if (state.path === 'logic') clickPower *= 1.5;
+  if (state.path === 'intuition') clickPower *= 1.3;
+  if (state.path === 'creativity') clickPower *= 1.2;
+  if (state.phase >= 2) clickPower *= 2;
+  if (state.enlightenments > 0) clickPower *= Math.pow(1.5, state.enlightenments);
+  if (state.focus > 0) clickPower *= (1 + state.focus * 0.001);
+  
+  document.getElementById('kps').textContent = formatNumber(kps.toFixed(1));
+  document.getElementById('click-power').textContent = formatNumber(clickPower.toFixed(1));
+  document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
+  
+  updateUpgrades();
+  updateProjects();
+  updateResources();
+  updateChoices();
+  updateMeditation();
+}
+
+function updateChoices() {
+  const container = document.getElementById('choice-container');
+  container.innerHTML = '';
+  
+  CHOICES.forEach(choice => {
+    if (state.choicesMade[choice.id]) return;
+    
+    const canShow = state.knowledge >= choice.showAt && 
+                    (!choice.requiresProject || state.projectsCompleted[choice.requiresProject]) &&
+                    (!choice.requiresChoice || state.choicesMade[choice.requiresChoice]);
+    
+    if (canShow) {
+      const questionLine = document.createElement('div');
+      questionLine.className = 'line';
+      questionLine.style.fontWeight = 'bold';
+      questionLine.textContent = choice.question;
+      container.appendChild(questionLine);
+      
+      choice.options.forEach(option => {
+        const choiceLine = document.createElement('div');
+        choiceLine.className = 'line';
+        choiceLine.style.marginLeft = '20px';
+        
+        const link = document.createElement('span');
+        link.className = 'clickable';
+        link.textContent = option.text;
+        link.onclick = () => {
+          option.effect();
+          updateDisplay();
+        };
+        
+        choiceLine.appendChild(link);
+        container.appendChild(choiceLine);
+      });
+    }
+  });
+}
+
+function updateMeditation() {
+  if (!state.projectsCompleted['meditation']) return;
+  
+  const container = document.getElementById('meditation-container');
+  container.innerHTML = '';
+  
+  if (state.meditationStart) {
+    const seconds = Math.floor((Date.now() - state.meditationStart) / 1000);
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.textContent = `meditating... (${seconds}s, ${state.meditationBonus.toFixed(1)}x bonus)`;
+    container.appendChild(line);
+  } else {
+    const line = document.createElement('div');
+    line.className = 'line';
+    const link = document.createElement('span');
+    link.className = 'clickable';
+    link.textContent = 'meditate';
+    link.onclick = startMeditation;
+    line.appendChild(link);
+    line.appendChild(document.createTextNode(' (stop clicking to build bonus)'));
+    container.appendChild(line);
+  }
+}
+
+function updateUpgrades() {
+  const container = document.getElementById('upgrade-container');
+  container.innerHTML = '';
+  
+  UPGRADES.forEach(upgrade => {
+    const owned = state[upgrade.id] || 0;
+    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, owned));
+    
+    const canShow = state.knowledge >= upgrade.showAt && 
+                    (!upgrade.requiresProject || state.projectsCompleted[upgrade.requiresProject]) &&
+                    (!upgrade.requiresPath || state.path === upgrade.requiresPath);
+    
+    if (canShow || owned > 0) {
+      const line = document.createElement('div');
+      line.className = 'line';
+      
+      const canAfford = state.knowledge >= cost;
+      
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = upgrade.name;
+      link.style.pointerEvents = 'auto';
+      
+      const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
+      
+      (function(currentCost, currentUpgrade) {
+        link.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (state.knowledge >= currentCost) {
+            state.knowledge -= currentCost;
+            currentUpgrade.effect();
+            updateDisplay();
+          }
+        };
+      })(cost, upgrade);
+      
+      line.appendChild(link);
+      line.appendChild(info);
+      container.appendChild(line);
+    }
+  });
+}
+
+function updateProjects() {
+  const container = document.getElementById('project-container');
+  container.innerHTML = '';
+  
+  PROJECTS.forEach(project => {
+    if (state.projectsCompleted[project.id]) return;
+    
+    const canShow = state.knowledge >= project.showAt && 
+                    (!project.requiresProject || state.projectsCompleted[project.requiresProject]) &&
+                    (!project.requiresChoice || state.choicesMade[project.requiresChoice]);
+    
+    if (canShow) {
+      const line = document.createElement('div');
+      line.className = 'line';
+      
+      const knowledgeCost = project.cost || 0;
+      const insightCost = project.insightCost || 0;
+      const canAfford = state.knowledge >= knowledgeCost && state.insights >= insightCost;
+      
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = project.name;
+      
+      let costText = ` (${formatNumber(knowledgeCost)}`;
+      if (insightCost > 0) {
+        costText += `, ${formatNumber(insightCost)} insights`;
+      }
+      costText += ')';
+      
+      const info = document.createTextNode(costText);
+      
+      link.onclick = () => {
+        if (state.knowledge >= knowledgeCost && state.insights >= insightCost) {
+          state.knowledge -= knowledgeCost;
+          state.insights -= insightCost;
+          state.projectsCompleted[project.id] = true;
+          project.effect();
+          updateDisplay();
+        }
+      };
+      
+      line.appendChild(link);
+      line.appendChild(info);
+      container.appendChild(line);
+    }
+  });
+}
+
+function updateResources() {
+  const container = document.getElementById('resource-container');
+  container.innerHTML = '';
+  
+  const resources = [];
+  if (state.plasticity > 0) resources.push(`plasticity: ${formatNumber(state.plasticity)}`);
+  if (state.neurons > 0) resources.push(`neurons: ${formatNumber(state.neurons)}`);
+  if (state.synapses > 0) resources.push(`synapse factories: ${formatNumber(state.synapses)}`);
+  if (state.pattern_recognition > 0) resources.push(`pattern recognition: ${formatNumber(state.pattern_recognition)}`);
+  if (state.memory > 0) resources.push(`memory banks: ${formatNumber(state.memory)}`);
+  if (state.logic > 0) resources.push(`logic processors: ${formatNumber(state.logic)}`);
+  if (state.creativity > 0) resources.push(`creative engines: ${formatNumber(state.creativity)}`);
+  if (state.intuition > 0) resources.push(`intuitive cores: ${formatNumber(state.intuition)}`);
+  if (state.collective > 0) resources.push(`collective nodes: ${formatNumber(state.collective)}`);
+  if (state.enlightenments > 0) resources.push(`enlightenments: ${state.enlightenments}`);
+  
+  if (resources.length > 0) {
+    container.classList.remove('hidden');
+    resources.forEach(r => {
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.textContent = r;
+      container.appendChild(line);
+    });
+  }
+}
+
+function enlighten() {
+  state.enlightenments += 1;
+  const preservedWisdom = state.wisdom;
+  
+  state = {
+    knowledge: 0,
+    insights: 0,
+    focus: 0,
+    wisdom: preservedWisdom,
+    plasticity: 0,
+    neurons: 0,
+    synapses: 0,
+    pattern_recognition: 0,
+    memory: 0,
+    creativity: 0,
+    logic: 0,
+    intuition: 0,
+    collective: 0,
+    totalClicks: 0,
+    startTime: Date.now(),
+    meditationStart: null,
+    meditationBonus: 1,
+    phase: 1,
+    path: null,
+    enlightenments: state.enlightenments,
+    projectsCompleted: {},
+    choicesMade: {},
+    storyShown: {},
+    gameEnded: false
+  };
+  
+  addStory('you begin again, carrying the weight of experience');
+  updateDisplay();
+}
+
+function endGame(ending) {
+  state.gameEnded = true;
+  
+  const choiceContainer = document.getElementById('choice-container');
+  const storyContainer = document.getElementById('story-container');
+  
+  choiceContainer.innerHTML = '';
+  storyContainer.innerHTML = '';
+  
+  const messages = {
+    'transcend': [
+      'you accept.',
+      'the boundaries dissolve.',
+      'self and other, thought and thing, become one.',
+      '',
+      state.path === 'logic' ? 'through reason, you became the universe thinking itself.' :
+      state.path === 'creativity' ? 'through imagination, you became the universe creating itself.' :
+      state.path === 'intuition' ? 'through feeling, you became the universe experiencing itself.' :
+      'through balance, you became the universe knowing itself.',
+      '',
+      state.choicesMade['collective_choice'] === 'join' ? 
+        'you were already one with many. now you are one with all.' :
+        'you held onto yourself until the very end. now there is no self to hold.',
+      '',
+      'end.'
+    ],
+    'remain': [
+      'you refuse.',
+      'the universe withdraws its offer.',
+      'you remain as you are: finite, mortal, alone.',
+      '',
+      state.path === 'logic' ? 'logic showed you the patterns, but you chose not to follow them.' :
+      state.path === 'creativity' ? 'creativity showed you possibilities, but you chose what already was.' :
+      state.path === 'intuition' ? 'intuition whispered the truth, but you chose to stay.' :
+      'you saw all paths and chose none.',
+      '',
+      state.choicesMade['collective_choice'] === 'join' ? 
+        'you were one with many, but chose to become one again.' :
+        'you were always alone, and chose to remain so.',
+      '',
+      'end.'
+    ]
+  };
+  
+  const endingMessages = messages[ending];
+  endingMessages.forEach((msg, i) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.style.fontStyle = 'italic';
+      line.textContent = msg;
+      storyContainer.appendChild(line);
+    }, i * 1500);
+  });
+  
+  setTimeout(() => {
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.style.marginTop = '20px';
+    const link = document.createElement('span');
+    link.className = 'clickable';
+    link.textContent = 'begin again';
+    link.onclick = () => {
+      location.reload();
+    };
+    line.appendChild(link);
+    storyContainer.appendChild(line);
+  }, endingMessages.length * 1500 + 2000);
+}
+
+function formatNumber(num) {
+  if (typeof num === 'string') return num;
+  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
+  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+  return Math.floor(num).toString();
+}
+
+function render() {
+  updateDisplay();
+}
+
+init();
+</script>
+</body>
+</html>
