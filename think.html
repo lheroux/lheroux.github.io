@@ -98,17 +98,6 @@
     #story-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
     #story-container::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
     
-    .session-timer {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      font-size: 0.75em;
-      opacity: 0.5;
-      padding: 8px 12px;
-      background: rgba(255,255,255,0.4);
-      border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
     .enlighten-ready {
       animation: enlightenPulse 3s ease-in-out infinite;
     }
@@ -134,11 +123,6 @@
 </head>
 <body>
 
-  <div class="session-timer">
-    <div>session: <span id="session-time">0:00</span></div>
-    <div style="font-size: 0.9em; opacity: 0.7; margin-top: 2px;">closing tab resets</div>
-  </div>
-
   <div id="game-wrapper">
     <div id="main-content">
       <div class="line"><span class="clickable" id="think-button">think</span></div>
@@ -152,7 +136,7 @@
       </div>
 
       <div class="line hidden" id="wisdom-line">
-        wisdom: <span id="wisdom-value">0</span> <span style="font-size: 0.85em; opacity: 0.6;">(transcends cycles)</span>
+        wisdom: <span id="wisdom-value">0</span> <span style="font-size: 0.85em; opacity: 0.6;">(eternal)</span>
       </div>
 
       <div id="per-second-panel" class="hidden" style="margin-top: 10px; margin-bottom: 15px; padding-top: 5px;">
@@ -463,11 +447,6 @@ function calculateClickPower() {
 
 /* ---------- Session timer ---------- */
 function updateSessionTimer() {
-  const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
-  const minutes = Math.floor(elapsed / 60);
-  const seconds = elapsed % 60;
-  document.getElementById('session-time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  
   // Build resonance over time
   if (state.projectsCompleted['resonance']) {
     const resonanceGain = 0.01; // 1% per second
@@ -481,10 +460,6 @@ function init() {
   setTimeout(() => {
     if (state.knowledge < 10) addStory('begin by thinking');
   }, 1000);
-  setTimeout(() => {
-    addStory('warning: closing this tab resets your progress');
-    addStory('wisdom persists. everything else fades.');
-  }, 3000);
   
   render();
   setInterval(gameLoop, 100);
