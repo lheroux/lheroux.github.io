@@ -14,6 +14,7 @@
       color: #2c2c2c;
       line-height: 1.6;
       font-size: 14px;
+      transition: color 0.5s ease;
     }
     #game-wrapper {
       display: flex;
@@ -32,16 +33,16 @@
       touch-action: manipulation; 
       transition: all 0.15s ease; 
     }
-    .clickable:hover { text-decoration: underline; color: #1a1a1a; }
+    .clickable:hover { text-decoration: underline; opacity: 0.8; }
     .clickable:active { opacity: 0.7; transform: scale(0.98); }
     .line { margin: 5px 0; }
     .hidden { display: none !important; }
-    .disabled { opacity: 0.4; cursor: default !important; }
+    .disabled { opacity: 0.4; cursor: default !important; pointer-events: none; }
     .disabled:hover { text-decoration: none !important; }
-    .home-link { position: fixed; bottom: 10px; right: 10px; font-size: 0.9em; text-decoration: none; color: black; }
+    .home-link { position: fixed; bottom: 10px; right: 10px; font-size: 0.9em; text-decoration: none; color: inherit; }
     .home-link:hover { text-decoration: underline; }
     .save-links { position: fixed; bottom: 30px; right: 10px; font-size: 0.9em; text-align: right; }
-    .save-links .clickable { color: black; text-decoration: none; }
+    .save-links .clickable { color: inherit; text-decoration: none; }
     .save-links .clickable:hover { text-decoration: underline; }
     .click-counter { 
       position: absolute; 
@@ -72,7 +73,7 @@
     }
     @keyframes valueFlash {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; color: #666; }
+      50% { opacity: 0.6; }
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-5px); }
@@ -141,6 +142,9 @@
       0%, 100% { filter: brightness(1); }
       50% { filter: brightness(1.2); }
     }
+    .path-logic { color: #1a2a4a !important; }
+    .path-creativity { color: #4a1a1a !important; }
+    .path-intuition { color: #2a1a4a !important; }
   </style>
 </head>
 <body>
@@ -195,7 +199,7 @@
   <a class="home-link" href="index.html">home</a>
 
   <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
-    <div style="margin-bottom: 2px;">version AMAIA (6.0)</div>
+    <div style="margin-bottom: 2px;">game version AMAIA (9.0xVA)</div>
     <div>© laurent héroux 2025</div>
   </div>
 
@@ -268,21 +272,21 @@ const CHOICES = [
         state.choicesMade['first_path'] = 'logic'; 
         addStory('you choose the path of logic');
         addStory('reason sharpens your mind — but at what cost?');
-        document.body.style.color = '#1a2a4a';
+        applyPathColor();
       }},
       { id: 'creativity', text: 'through imagination and creation', effect: () => { 
         state.path = 'creativity'; 
         state.choicesMade['first_path'] = 'creativity'; 
         addStory('you choose the path of creativity');
         addStory('imagination flows freely — structure fades');
-        document.body.style.color = '#4a1a1a';
+        applyPathColor();
       }},
       { id: 'intuition', text: 'through feeling and instinct', effect: () => { 
         state.path = 'intuition'; 
         state.choicesMade['first_path'] = 'intuition'; 
         addStory('you choose the path of intuition');
         addStory('instinct guides you — reason becomes distant');
-        document.body.style.color = '#2a1a4a';
+        applyPathColor();
       }}
     ]
   },
@@ -374,6 +378,19 @@ const PROJECTS = [
   { id: 'secret_convergence', name: '??? SINGULARITY ???', cost: 10000000, insightCost: 10000, showAt: 5000000, requiresChoice: 'divergence_choice', effect: () => { addStory('━━━━━ REALITY FRACTURES ━━━━━'); addStory('you have found the hidden path'); state.secretsFound++; }, desc: 'the final secret', secret: true }
 ];
 
+function applyPathColor() {
+  const body = document.body;
+  body.classList.remove('path-logic', 'path-creativity', 'path-intuition');
+  
+  if (state.path === 'logic') {
+    body.classList.add('path-logic');
+  } else if (state.path === 'creativity') {
+    body.classList.add('path-creativity');
+  } else if (state.path === 'intuition') {
+    body.classList.add('path-intuition');
+  }
+}
+
 function calculateKPS() {
   let passive = 0;
   let plasticityMult = state.metaUpgrades['eternal_plasticity'] ? 2 : 1;
@@ -381,6 +398,8 @@ function calculateKPS() {
   passive += state.synapses * 2;
   passive += state.memory * 25;
   passive += state.logic * 100;
+  passive += state.creativity * 80;
+  passive += state.intuition * 90;
   passive += state.collective * 500;
   passive += state.divergence * 1000;
   
@@ -439,6 +458,8 @@ function getKPSBreakdown() {
   if (state.synapses > 0) breakdown.push('synapses: ' + formatNumber(state.synapses * 2));
   if (state.memory > 0) breakdown.push('memory: ' + formatNumber(state.memory * 25));
   if (state.logic > 0) breakdown.push('logic: ' + formatNumber(state.logic * 100));
+  if (state.creativity > 0) breakdown.push('creativity: ' + formatNumber(state.creativity * 80));
+  if (state.intuition > 0) breakdown.push('intuition: ' + formatNumber(state.intuition * 90));
   if (state.collective > 0) breakdown.push('collective: ' + formatNumber(state.collective * 500));
   if (state.divergence > 0) breakdown.push('divergence: ' + formatNumber(state.divergence * 1000));
   if (state.transcendence > 0) breakdown.push('transcendence: ' + formatNumber(state.transcendence * 5000));
@@ -521,6 +542,7 @@ function importSave() {
         addStory('save imported successfully');
         field.classList.add('hidden');
         render();
+        applyPathColor();
       }
     } catch (e) {
       addStory('import failed — invalid save data');
@@ -535,10 +557,7 @@ function init() {
       if (state.knowledge < 10) addStory('begin by thinking');
     }, 1000);
   } else {
-    // Restore path color on load
-    if (state.path === 'logic') document.body.style.color = '#1a2a4a';
-    if (state.path === 'creativity') document.body.style.color = '#4a1a1a';
-    if (state.path === 'intuition') document.body.style.color = '#2a1a4a';
+    applyPathColor();
   }
   
   document.getElementById('save-button').onclick = saveGame;
@@ -626,6 +645,22 @@ document.getElementById('think-button').onclick = (e) => {
     document.getElementById('per-second-panel').classList.remove('hidden');
   }
   updateDisplay();
+};
+
+// Enable mousedown for trackpad clicking
+document.getElementById('think-button').onmousedown = (e) => {
+  if (e.button === 0) {
+    let gain = calculateClickPower();
+    state.knowledge += gain;
+    state.totalClicks++;
+    const rect = e.target.getBoundingClientRect();
+    showClickCounter(gain, rect.left + rect.width / 2, rect.top);
+    if (state.totalClicks === 1) {
+      document.getElementById('per-second-panel').classList.remove('hidden');
+    }
+    updateDisplay();
+    e.preventDefault();
+  }
 };
 
 function showClickCounter(amount, x, y) {
@@ -756,6 +791,7 @@ function enlighten() {
   const preservedTotalEnlightenments = state.totalEnlightenments + 1;
   const preservedInfinityMode = state.infinityMode;
   const preservedSecretsFound = state.secretsFound;
+  const preservedPath = state.path;
   
   const startKnowledge = state.metaUpgrades['neural_memory'] ? Math.floor(state.bestKnowledge * 0.1) : 0;
   
@@ -778,7 +814,7 @@ function enlighten() {
     transcendence: 0,
     totalClicks: 0,
     phase: 1,
-    path: null,
+    path: preservedPath,
     enlightenments: state.enlightenments + 1,
     totalEnlightenments: preservedTotalEnlightenments,
     projectsCompleted: {},
@@ -799,6 +835,7 @@ function enlighten() {
   if (startKnowledge > 0) addStory('neural echoes: +' + formatNumber(startKnowledge) + ' knowledge');
   addStory('━━━━━━━━━━━━━━━━━━━━━━');
   
+  applyPathColor();
   updateDisplay();
 }
 
@@ -879,6 +916,14 @@ function updateChoices() {
         const link = document.createElement('span');
         link.className = 'clickable';
         link.style.fontStyle = 'italic';
+        
+        // Apply color preview to choice text
+        if (choice.id === 'first_path') {
+          if (option.id === 'logic') link.classList.add('path-logic');
+          if (option.id === 'creativity') link.classList.add('path-creativity');
+          if (option.id === 'intuition') link.classList.add('path-intuition');
+        }
+        
         link.textContent = option.text;
         link.onclick = () => {
           option.effect();
