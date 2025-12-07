@@ -161,7 +161,7 @@
         wisdom: <span id="wisdom-value">0</span> <span style="font-size: 0.85em; opacity: 0.6;">(eternal)</span>
       </div>
 
-      <div id="per-second-panel" class="hidden" style="margin-top: 10px; margin-bottom: 15px; padding-top: 5px;">
+      <div id="per-second-panel" class="hidden" style="margin-top: 10px; margin-bottom: 15px;">
         <div class="line">knowledge per second: <span id="kps">0</span></div>
         <div class="production-breakdown hidden" id="kps-breakdown"></div>
         <div class="line">knowledge per click: <span id="kpc">1</span></div>
@@ -267,19 +267,22 @@ const CHOICES = [
         state.path = 'logic'; 
         state.choicesMade['first_path'] = 'logic'; 
         addStory('you choose the path of logic');
-        addStory('reason sharpens your mind — but at what cost?'); 
+        addStory('reason sharpens your mind — but at what cost?');
+        document.body.style.color = '#1a2a4a';
       }},
       { id: 'creativity', text: 'through imagination and creation', effect: () => { 
         state.path = 'creativity'; 
         state.choicesMade['first_path'] = 'creativity'; 
         addStory('you choose the path of creativity');
-        addStory('imagination flows freely — structure fades'); 
+        addStory('imagination flows freely — structure fades');
+        document.body.style.color = '#4a1a1a';
       }},
       { id: 'intuition', text: 'through feeling and instinct', effect: () => { 
         state.path = 'intuition'; 
         state.choicesMade['first_path'] = 'intuition'; 
         addStory('you choose the path of intuition');
-        addStory('instinct guides you — reason becomes distant'); 
+        addStory('instinct guides you — reason becomes distant');
+        document.body.style.color = '#2a1a4a';
       }}
     ]
   },
@@ -531,6 +534,11 @@ function init() {
     setTimeout(() => {
       if (state.knowledge < 10) addStory('begin by thinking');
     }, 1000);
+  } else {
+    // Restore path color on load
+    if (state.path === 'logic') document.body.style.color = '#1a2a4a';
+    if (state.path === 'creativity') document.body.style.color = '#4a1a1a';
+    if (state.path === 'intuition') document.body.style.color = '#2a1a4a';
   }
   
   document.getElementById('save-button').onclick = saveGame;
@@ -543,6 +551,24 @@ function init() {
   setInterval(gameLoop, 100);
   setInterval(updateResonance, 1000);
 }
+
+// Developer cheat: press 'o' five times in 5 seconds
+let oKeyPresses = [];
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'o' || e.key === 'O') {
+    const now = Date.now();
+    oKeyPresses.push(now);
+    oKeyPresses = oKeyPresses.filter(time => now - time < 5000);
+    
+    if (oKeyPresses.length >= 5) {
+      state.knowledge += 100000;
+      state.insights += 10;
+      addStory('━━━ developer cheat activated ━━━');
+      oKeyPresses = [];
+      updateDisplay();
+    }
+  }
+});
 
 let lastKnowledge = 0;
 function gameLoop() {
