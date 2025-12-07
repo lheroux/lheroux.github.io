@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>think</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
     body {
@@ -36,8 +36,10 @@
     .click-counter { position: absolute; pointer-events: none; font-size: 1.2em; font-weight: bold; opacity: 0; animation: floatUp 1s ease-out; }
     @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px); opacity: 0; } }
 
-    /* make story container scrollable if many messages */
     #story-container { max-height: 70vh; overflow-y: auto; padding-right: 6px; }
+
+    /* keep dev console visually unobtrusive */
+    #dev-console { position: fixed; bottom: 50px; left: 20px; width: 300px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; font-size: 0.75em; opacity: 0.3; display: none; }
   </style>
 </head>
 <body>
@@ -51,18 +53,26 @@
         knowledge: <span id="knowledge-value">0</span>
       </div>
 
-      <!-- Consolidated stat section (replaces sidebar) -->
-      <div class="line">kps: <span id="kps">0</span></div>
-      <div class="line">kpc: <span id="click-power">1</span></div>
-      <div class="line hidden" id="insight-display-inline">insights: <span id="insight-value">0</span></div>
-      <div class="line hidden" id="focus-display-inline">focus: <span id="focus-value">0</span></div>
-      <div class="line hidden" id="wisdom-display-inline">wisdom: <span id="wisdom-value">0</span></div>
+      <div class="line" style="margin-top: 6px;">
+        insights: <span id="insight-value">0</span>
+      </div>
+
+      <div class="line" style="margin-top: 6px;">
+        wisdom: <span id="wisdom-value">0</span>
+      </div>
+
+      <!-- Per-second block directly below main counters -->
+      <div id="per-second-panel" style="margin-top: 10px; margin-bottom: 15px; border-top: 1px solid #000; padding-top: 10px;">
+        <div class="line">knowledge per second: <span id="kps">0</span></div>
+        <div class="line">knowledge per click: <span id="kpc">1</span></div>
+        <div class="line" id="ips-line" style="display:none">insight per second: <span id="ips">0</span></div>
+        <div class="line" id="wps-line" style="display:none">wisdom per second: <span id="wps">0</span></div>
+      </div>
 
       <div id="choice-container" style="margin-top: 15px;"></div>
       <div id="upgrade-container" style="margin-top: 15px;"></div>
       <div id="project-container" style="margin-top: 15px;"></div>
 
-      <!-- Keep old stats container hidden by default (compat) -->
       <div id="stats-container" class="hidden" style="margin-top: 20px;">
         <div class="line">knowledge per click: <span id="click-power-alt">1</span></div>
         <div class="line">knowledge per second: <span id="kps-alt">0</span></div>
@@ -80,20 +90,26 @@
   <a class="home-link" href="index.html">home</a>
 
   <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
-    <div style="margin-bottom: 2px;">V. 3.56xi</div>
+    <div style="margin-bottom: 2px;">V. 3.56xi (final)</div>
     <div>© laurent héroux 2025</div>
   </div>
 
   <!-- Optional dev console (hidden by default) -->
-  <div id="dev-console" style="position: fixed; bottom: 50px; left: 20px; width: 300px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; font-size: 0.75em; opacity: 0.3; display: none;">
+  <div id="dev-console">
     <div style="margin-bottom: 5px; font-weight: bold;">dev console</div>
     <input type="text" id="dev-input" style="width: 100%; padding: 5px; font-family: 'Times New Roman', serif; font-size: 1em; border: 1px solid #ccc;" placeholder="press t to type...">
   </div>
 
 <script>
-/* Full game code with requested modifications */
+/* -------------------------
+   Full game (modified)
+   - raw integers with commas
+   - knowledge per second / click labels
+   - ips and wps added and displayed under counters
+   - "O" x10 in 5s → +1,000,000,000 knowledge
+   ------------------------- */
 
-// Game state
+/* ---------- State ---------- */
 let state = {
   knowledge: 0,
   insights: 0,
@@ -126,10 +142,10 @@ let state = {
   softResetUsed: false
 };
 
-// Developer console state
+/* ---------- Dev console state ---------- */
 let devConsole = { xPressCount: 0, lastXPressTime: 0, isOpen: false, inputActive: false };
 
-// Story events
+/* ---------- Stories ---------- */
 const STORIES = [
   { at: 5, id: 'awareness', text: 'awareness emerges from the void' },
   { at: 25, id: 'plasticity', text: 'your mind begins to reshape itself' },
@@ -142,7 +158,7 @@ const STORIES = [
   { at: 1000000, id: 'approach', text: 'something approaches. a choice must be made.' }
 ];
 
-// Choices
+/* ---------- Choices ---------- */
 const CHOICES = [
   {
     id: 'first_path', showAt: 12000, question: 'how will you grow?',
@@ -162,14 +178,14 @@ const CHOICES = [
   {
     id: 'final_choice', showAt: 10000000, requiresChoice: 'collective_choice', question: 'the universe offers transcendence. but at what cost?',
     options: [
-      { id: 'transcend', text: 'accept. become everything.', effect: () => { state.choicesMade['final_choice'] = 'transcend'; addStory('you accept the offer. boundaries begin to dissolve.'); } },
-      { id: 'remain_mortal', text: 'refuse. stay as you are.', effect: () => { state.choicesMade['final_choice'] = 'remain'; addStory('you refuse. you remain finite, mortal, yourself.'); } },
+      { id: 'transcend', text: 'accept. become everything.', effect: () => { state.choicesMade['final_choice'] = 'transcend'; addStory('you accept the offer. boundaries begin to dissolve.'); endGame('transcend'); } },
+      { id: 'remain_mortal', text: 'refuse. stay as you are.', effect: () => { state.choicesMade['final_choice'] = 'remain'; addStory('you refuse. you remain finite, mortal, yourself.'); endGame('remain'); } },
       { id: 'enlighten', text: 'start again, wiser.', effect: () => { enlighten(); } }
     ]
   }
 ];
 
-// Quests
+/* ---------- Quests ---------- */
 const QUESTS = [
   { id: 'first_hundred', trigger: 100, text: 'a hundred thoughts... what if you could think a thousand?', reward: 200, accept: () => { state.knowledge += 200; state.questsCompleted['first_hundred'] = true; addStory('the first hundred became a thousand'); } },
   { id: 'rapid_fire', trigger: 500, requirement: () => state.totalClicks >= 50, text: 'your mind races... can you maintain this velocity?', reward: 1000, accept: () => { state.knowledge += 1000; state.questsCompleted['rapid_fire'] = true; addStory('velocity becomes grace'); } },
@@ -178,14 +194,14 @@ const QUESTS = [
   { id: 'risk_taker', trigger: 100000, requirement: () => state.gambleUnlocked, text: 'fortune favors the bold...', reward: 50000, accept: () => { state.knowledge += 50000; state.questsCompleted['risk_taker'] = true; addStory('uncertainty becomes opportunity'); } }
 ];
 
-// Gambling
+/* ---------- Gambling ---------- */
 const GAMBLE_OPTIONS = [
   { name: 'cautious', wager: 0.05, minReturn: 0.8, maxReturn: 1.3, cooldown: 10000 },
   { name: 'balanced', wager: 0.15, minReturn: 0.5, maxReturn: 2.0, cooldown: 20000 },
-  { name: 'risky', wager: 0.30, minReturn: 0, maxReturn: 3.5, cooldown: 30000 }
+  { name: 'risky', wager: 0.30, minReturn: 0,   maxReturn: 3.5, cooldown: 30000 }
 ];
 
-// Upgrade descriptions
+/* ---------- Upgrade descriptions & towers ---------- */
 const UPGRADE_DESCRIPTIONS = {
   'plasticity': 'the mind begins to adapt',
   'neurons': 'connections multiply',
@@ -198,7 +214,6 @@ const UPGRADE_DESCRIPTIONS = {
   'collective': 'many minds think as one'
 };
 
-// Upgrades
 const UPGRADES = [
   { id: 'plasticity', name: 'plasticity', baseCost: 10, costMultiplier: 1.15, effect: () => { state.plasticity += 1; }, showAt: 0 },
   { id: 'neurons', name: 'neuron', baseCost: 50, costMultiplier: 1.12, effect: () => { state.neurons += 1; }, showAt: 25 },
@@ -211,18 +226,18 @@ const UPGRADES = [
   { id: 'collective', name: 'collective node', baseCost: 1500000, costMultiplier: 1.20, effect: () => { state.collective += 1; }, showAt: 500000, requiresProject: 'network' }
 ];
 
-// Projects
 const PROJECTS = [
   { id: 'patterns', name: 'PATTERN ANALYSIS', cost: 1000, showAt: 400, effect: () => { addStory('patterns within patterns within patterns'); }, unlocks: 'pattern recognition upgrade' },
   { id: 'memory_proj', name: 'MEMORY FORMATION', cost: 6000, showAt: 4000, effect: () => { addStory('the past crystallizes'); }, unlocks: 'memory bank upgrade' },
-  { id: 'insights', name: 'INSIGHT GENERATION', cost: 20000, showAt: 12000, effect: () => { document.getElementById('insight-display-inline').classList.remove('hidden'); addStory('beneath knowledge lies insight'); }, unlocks: 'insight resource' },
+  { id: 'insights', name: 'INSIGHT GENERATION', cost: 20000, showAt: 12000, effect: () => { document.getElementById('insight-display-inline') && document.getElementById('insight-display-inline').classList.remove('hidden'); document.getElementById('ips-line').style.display = 'block'; addStory('beneath knowledge lies insight'); }, unlocks: 'insight resource' },
   { id: 'focus_amplifier', name: 'FOCUS AMPLIFIER', cost: 35000, showAt: 20000, requiresProject: 'insights', effect: () => { addStory('clarity multiplies productivity'); }, unlocks: 'focus generation from intuition' },
   { id: 'gamble', name: 'UNCERTAINTY PRINCIPLE', cost: 80000, showAt: 50000, requiresProject: 'focus_amplifier', effect: () => { state.gambleUnlocked = true; document.getElementById('gamble-container').classList.remove('hidden'); addStory('risk and reward intertwine'); }, unlocks: 'uncertainty market' },
   { id: 'network', name: 'NEURAL NETWORKING', cost: 250000, showAt: 120000, requiresChoice: 'first_path', effect: () => { addStory('you are no longer alone'); }, unlocks: 'collective node upgrade' },
-  { id: 'wisdom_proj', name: 'WISDOM SYNTHESIS', cost: 1000000, insightCost: 500, showAt: 500000, requiresProject: 'network', effect: () => { document.getElementById('wisdom-display-inline').classList.remove('hidden'); addStory('wisdom is knowledge tempered by experience'); }, unlocks: 'wisdom resource' }
+  { id: 'wisdom_proj', name: 'WISDOM SYNTHESIS', cost: 1000000, insightCost: 500, showAt: 500000, requiresProject: 'network', effect: () => { document.getElementById('wisdom-display-inline') && document.getElementById('wisdom-display-inline').classList.remove('hidden'); document.getElementById('wps-line').style.display = 'block'; addStory('wisdom is knowledge tempered by experience'); }, unlocks: 'wisdom resource' }
 ];
 
-// Initialization
+/* ---------- Initialization ---------- */
+
 function init() {
   addStory('you are. you think. therefore...');
 
@@ -235,7 +250,7 @@ function init() {
 
       if (savedState.lastSaveTime) {
         const timeAway = Date.now() - savedState.lastSaveTime;
-        const secondsAway = timeAway / 1000;
+        const secondsAway = Math.max(0, timeAway / 1000);
 
         // offline passive
         let passive = 0;
@@ -281,7 +296,10 @@ function init() {
   setInterval(saveGame, 60000);
   document.addEventListener('visibilitychange', handleVisibilityChange);
   setupDevConsole();
+  setupOCheat();
 }
+
+/* ---------- Dev Console ---------- */
 
 function setupDevConsole() {
   const devInput = document.getElementById('dev-input');
@@ -331,6 +349,8 @@ function setupDevConsole() {
   }
 }
 
+/* ---------- Visibility / Offline ---------- */
+
 function handleVisibilityChange() {
   if (document.hidden) {
     state.lastSaveTime = Date.now();
@@ -338,7 +358,7 @@ function handleVisibilityChange() {
   } else {
     if (state.lastSaveTime) {
       const timeAway = Date.now() - state.lastSaveTime;
-      const secondsAway = timeAway / 1000;
+      const secondsAway = Math.max(0, timeAway / 1000);
 
       if (secondsAway > 1) {
         let passive = 0;
@@ -376,14 +396,17 @@ function handleVisibilityChange() {
   }
 }
 
+/* ---------- Save ---------- */
+
 function saveGame() {
   try {
     const saveState = { ...state, lastSaveTime: Date.now() };
     localStorage.setItem('thinkGameState', JSON.stringify(saveState));
-    // subtle save story (kept from original)
     addStory('saved');
   } catch (e) { console.error('Failed to save:', e); }
 }
+
+/* ---------- Game loop ---------- */
 
 function gameLoop() {
   if (state.gameEnded) return;
@@ -403,16 +426,19 @@ function gameLoop() {
 
   if (passive > 0) state.knowledge += passive / 10;
 
+  // insights per second accumulation
   if (state.creativity > 0) {
     const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
     state.insights += insightRate / 10;
   }
 
+  // focus accumulation from intuition
   if (state.intuition > 0) {
     const focusRate = state.intuition * (state.path === 'intuition' ? 0.03 : 0.01);
     state.focus += focusRate / 10;
   }
 
+  // wisdom accumulation once wisdom project is done
   if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
     state.wisdom += state.insights * 0.0001 / 10;
   }
@@ -421,9 +447,11 @@ function gameLoop() {
   updateDisplay();
   checkSoftResetUnlock();
   checkEndGame();
+  checkQuests();
 }
 
-// Click handler
+/* ---------- Click handler ---------- */
+
 document.getElementById('think-button').onclick = (e) => {
   if (state.gameEnded) return;
 
@@ -450,7 +478,8 @@ document.getElementById('think-button').onclick = (e) => {
   updateDisplay();
 };
 
-// Floating counter
+/* ---------- Click float ---------- */
+
 function showClickCounter(amount, x, y) {
   const counter = document.createElement('div');
   counter.className = 'click-counter';
@@ -461,7 +490,8 @@ function showClickCounter(amount, x, y) {
   setTimeout(() => counter.remove(), 1000);
 }
 
-// Story management
+/* ---------- Story management ---------- */
+
 function addStory(text) {
   const container = document.getElementById('story-container');
   const line = document.createElement('div');
@@ -473,7 +503,8 @@ function addStory(text) {
   while (container.children.length > 12) container.removeChild(container.lastChild);
 }
 
-// Quests UI
+/* ---------- Quests ---------- */
+
 function checkQuests() {
   QUESTS.forEach(quest => {
     if (state.questsCompleted[quest.id]) return;
@@ -513,10 +544,11 @@ function updateQuestDisplay() {
   });
 }
 
-// Gamble UI and logic
+/* ---------- Gamble UI and logic ---------- */
+
 function updateGambleDisplay() {
-  if (!state.gambleUnlocked) return;
   const container = document.getElementById('gamble-container');
+  if (!state.gambleUnlocked || !container) return;
   const now = Date.now();
   const timeSinceGamble = now - state.lastGambleTime;
   container.innerHTML = '<div class="line" style="font-weight: bold; margin-bottom: 5px;">uncertainty market</div>';
@@ -548,7 +580,8 @@ function performGamble(option, wagerAmount) {
   updateDisplay();
 }
 
-// Choices UI
+/* ---------- Choices UI ---------- */
+
 function updateChoices() {
   const container = document.getElementById('choice-container');
   container.innerHTML = '';
@@ -569,7 +602,8 @@ function updateChoices() {
   });
 }
 
-// Upgrades & Projects UI
+/* ---------- Upgrades & Projects UI ---------- */
+
 function updateUpgrades() {
   const container = document.getElementById('upgrade-container'); container.innerHTML = '';
   UPGRADES.forEach(upgrade => {
@@ -630,7 +664,8 @@ function updateProjects() {
   });
 }
 
-// Resources display
+/* ---------- Resources display ---------- */
+
 function updateResources() {
   const container = document.getElementById('resource-container'); container.innerHTML = '';
   const resources = [];
@@ -647,10 +682,13 @@ function updateResources() {
   if (resources.length > 0) {
     container.classList.remove('hidden');
     resources.forEach(r => { const line = document.createElement('div'); line.className = 'line'; line.textContent = r; container.appendChild(line); });
+  } else {
+    container.classList.add('hidden');
   }
 }
 
-// Enlighten (prestige)
+/* ---------- Enlighten (prestige) ---------- */
+
 function enlighten() {
   state.enlightenments += 1;
   const preservedWisdom = state.wisdom;
@@ -667,7 +705,8 @@ function enlighten() {
   updateDisplay();
 }
 
-// Endings & forced end game
+/* ---------- Endings & forced end game ---------- */
+
 function endGame(ending) {
   state.gameEnded = true;
   const choiceContainer = document.getElementById('choice-container');
@@ -715,17 +754,17 @@ function endGame(ending) {
   }, endingMessages.length * 1400 + 1400);
 }
 
-// Format numbers (compact)
+/* ---------- Format numbers (raw integers with commas) ---------- */
+
 function formatNumber(num) {
   if (typeof num !== 'number') num = Number(num) || 0;
-  if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
-  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-  if (num >= 10000) return Math.floor(num).toLocaleString();
-  return Math.floor(num);
+  // floor to integer (no decimals) and format with commas
+  const floored = Math.floor(num);
+  return floored.toLocaleString('en-US');
 }
 
-// Render loop UI
+/* ---------- Render / Update Display ---------- */
+
 function render() {
   updateDisplay();
   updateChoices();
@@ -739,7 +778,20 @@ function render() {
 function updateDisplay() {
   document.getElementById('knowledge-value').textContent = formatNumber(state.knowledge);
 
-  // Calculate KPS for display
+  // Show inline resource lines if present
+  if (state.insights > 0) {
+    // ensure main insight line visible
+    document.getElementById('insight-value').textContent = formatNumber(state.insights);
+  } else {
+    document.getElementById('insight-value').textContent = formatNumber(state.insights);
+  }
+  if (state.wisdom > 0) {
+    document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  } else {
+    document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  }
+
+  // Calculate knowledge per second (kps)
   let kps = state.plasticity * 0.1 + state.synapses * 2 + state.memory * 25 + state.logic * 100 + state.collective * 500;
   if (state.path === 'logic') kps *= 1.3;
   if (state.path === 'creativity') kps *= 1.1;
@@ -747,7 +799,7 @@ function updateDisplay() {
   if (state.phase >= 2) kps *= 2;
   if (state.enlightenments > 0) kps *= Math.pow(1.5, state.enlightenments);
 
-  document.getElementById('kps').textContent = formatNumber(parseFloat(kps.toFixed(1)));
+  // Calculate knowledge per click (click power)
   let clickPower = 1 + state.neurons * 0.5 + state.pattern_recognition * 5;
   if (state.path === 'logic') clickPower *= 1.5;
   if (state.path === 'intuition') clickPower *= 1.3;
@@ -756,21 +808,27 @@ function updateDisplay() {
   if (state.enlightenments > 0) clickPower *= Math.pow(1.5, state.enlightenments);
   if (state.focus > 0) clickPower *= (1 + state.focus * 0.001);
 
-  document.getElementById('click-power').textContent = formatNumber(parseFloat(clickPower.toFixed(1)));
-  document.getElementById('click-power-alt').textContent = formatNumber(parseFloat(clickPower.toFixed(1)));
-  document.getElementById('kps-alt').textContent = formatNumber(parseFloat(kps.toFixed(1)));
+  document.getElementById('kps').textContent = formatNumber(kps);
+  document.getElementById('kpc').textContent = formatNumber(clickPower);
+  document.getElementById('click-power-alt').textContent = formatNumber(clickPower);
+  document.getElementById('kps-alt').textContent = formatNumber(kps);
   document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
 
-  // Show inline resource lines when present
-  if (state.insights > 0) document.getElementById('insight-display-inline').classList.remove('hidden');
-  if (state.focus > 0) document.getElementById('focus-display-inline').classList.remove('hidden');
-  if (state.wisdom > 0) document.getElementById('wisdom-display-inline').classList.remove('hidden');
+  // IPS (insight per second) displayed as integer (floor)
+  let ips = 0;
+  if (state.creativity > 0) ips = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+  document.getElementById('ips').textContent = formatNumber(ips);
+  if (ips > 0) document.getElementById('ips-line').style.display = 'block';
+  else document.getElementById('ips-line').style.display = 'none';
 
-  document.getElementById('insight-value').textContent = formatNumber(state.insights);
-  document.getElementById('focus-value').textContent = formatNumber(state.focus);
-  document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  // WPS (wisdom per second)
+  let wps = 0;
+  if (state.insights > 100) wps = state.insights * 0.0001;
+  document.getElementById('wps').textContent = formatNumber(wps);
+  if (wps > 0) document.getElementById('wps-line').style.display = 'block';
+  else document.getElementById('wps-line').style.display = 'none';
 
-  // Update lists
+  // Other UI lists
   updateUpgrades();
   updateProjects();
   updateChoices();
@@ -779,7 +837,8 @@ function updateDisplay() {
   updateResources();
 }
 
-// Soft reset unlock at 50,000,000 (one-time)
+/* ---------- Soft reset and end checks ---------- */
+
 function checkSoftResetUnlock() {
   if (!state.softResetUnlocked && state.knowledge >= 50000000) {
     state.softResetUnlocked = true;
@@ -830,7 +889,6 @@ function checkSoftResetUnlock() {
   }
 }
 
-// Forced end game at 100,000,000,000
 function checkEndGame() {
   if (!state.gameEnded && state.knowledge >= 100000000000) {
     state.gameEnded = true;
@@ -862,10 +920,32 @@ function checkEndGame() {
   }
 }
 
-// Initial render helpers
-function updateChoices() { /* uses existing function above */ updateChoices = updateChoices || function(){} }
+/* ---------- O-cheat: press O 10 times within 5s ---------- */
 
-// Start the game
+let oPresses = [];
+function setupOCheat() {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'o' || e.key === 'O') {
+      const now = Date.now();
+      oPresses.push(now);
+      // keep only last 5 seconds
+      oPresses = oPresses.filter(t => now - t <= 5000);
+      if (oPresses.length >= 10) {
+        state.knowledge += 1000000000;
+        addStory('a surge of forbidden clarity floods your mind (+1,000,000,000)');
+        oPresses = [];
+        updateDisplay();
+      }
+    }
+  });
+}
+
+/* ---------- Initial render helpers (avoid duplicate fn complaints) ---------- */
+
+function updateChoices() { /* actual implementation above; wrapper kept for safety */ CHOICES && null; }
+
+/* ---------- Start ---------- */
+
 init();
 
 </script>
