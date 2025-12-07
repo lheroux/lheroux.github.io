@@ -10,8 +10,8 @@
       margin: 0;
       padding: 20px;
       font-family: "Times New Roman", serif;
-      background: #fff;
-      color: #000;
+      background: #f5f5f0;
+      color: #2c2c2c;
       line-height: 1.6;
       font-size: 14px;
     }
@@ -24,9 +24,9 @@
     }
     #main-content { width: 600px; flex-shrink: 0; position: relative; }
     #story-container { width: 280px; flex-shrink: 0; }
-    .clickable { cursor: pointer; user-select: none; display: inline; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-    .clickable:hover { text-decoration: underline; }
-    .clickable:active { opacity: 0.7; }
+    .clickable { cursor: pointer; user-select: none; display: inline; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all 0.15s ease; }
+    .clickable:hover { text-decoration: underline; color: #1a1a1a; }
+    .clickable:active { opacity: 0.7; transform: scale(0.98); }
     .line { margin: 5px 0; }
     .hidden { display: none !important; }
     .disabled { opacity: 0.4; cursor: default !important; }
@@ -35,7 +35,61 @@
     .home-link:hover { text-decoration: underline; }
     .click-counter { position: absolute; pointer-events: none; font-size: 1.2em; font-weight: bold; opacity: 0; animation: floatUp 1s ease-out; }
     @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-50px); opacity: 0; } }
-    #story-container { max-height: 70vh; overflow-y: auto; padding-right: 6px; }
+    #think-button { 
+      font-weight: bold; 
+      font-size: 1.1em;
+      transition: all 0.2s ease;
+    }
+    #think-button:hover { 
+      transform: scale(1.05);
+      text-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    #think-button:active {
+      transform: scale(0.95);
+    }
+    .value-change {
+      animation: valueFlash 0.3s ease;
+    }
+    @keyframes valueFlash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; color: #666; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 0.7; transform: translateY(0); }
+    }
+    .story-line {
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+    .passive-active {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    #story-container { 
+      max-height: 70vh; 
+      overflow-y: auto; 
+      padding-right: 6px;
+      padding: 15px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    #story-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    #story-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #story-container::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.1);
+      border-radius: 3px;
+    }
+    #story-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,0,0,0.2);
+    }
     #dev-console { position: fixed; bottom: 50px; left: 20px; width: 300px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; font-size: 0.75em; opacity: 0.3; display: none; }
   </style>
 </head>
@@ -46,7 +100,7 @@
       <div class="line"><span class="clickable" id="think-button">think</span></div>
 
       <div class="line" style="margin-top: 15px;">
-        knowledge: <span id="knowledge-value">0</span>
+        knowledge: <span id="knowledge-value">0</span><span id="passive-indicator" style="opacity: 0; margin-left: 8px; font-size: 0.8em; color: #666;">●</span>
       </div>
 
       <div class="line hidden" id="insight-line">
@@ -182,42 +236,48 @@ const GAMBLE_OPTIONS = [
 
 /* ---------- Upgrade descriptions ---------- */
 const UPGRADE_DESCRIPTIONS = {
-  'plasticity': 'the mind begins to adapt',
-  'neurons': 'connections multiply',
-  'synapses': 'thoughts cascade automatically',
-  'pattern_recognition': 'each thought reveals deeper meaning',
-  'memory': 'the past accelerates the present',
-  'logic': 'reason sharpens all thoughts',
-  'creativity': 'imagination births insights',
-  'intuition': 'instinct generates focus',
-  'collective': 'many minds think as one'
+  'plasticity': 'neural pathways shimmer with new potential',
+  'neurons': 'synaptic connections branch like lightning',
+  'synapses': 'thoughts echo and multiply in the silence',
+  'pattern_recognition': 'the hidden architecture of reality emerges',
+  'memory': 'time collapses; past and present converge',
+  'logic': 'pure reason cuts through the noise',
+  'creativity': 'impossible ideas crystallize into being',
+  'intuition': 'the subconscious whispers its secrets',
+  'collective': 'individual becomes infinite'
 };
 
 const UPGRADES = [
-  { id: 'plasticity', name: 'plasticity', baseCost: 10, costMultiplier: 1.15, effect: () => { state.plasticity += 1; }, showAt: 0 },
-  { id: 'neurons', name: 'neuron', baseCost: 50, costMultiplier: 1.12, effect: () => { state.neurons += 1; }, showAt: 25 },
-  { id: 'synapses', name: 'synapse factory', baseCost: 500, costMultiplier: 1.14, effect: () => { state.synapses += 1; }, showAt: 200 },
-  { id: 'pattern_recognition', name: 'pattern recognition', baseCost: 3500, costMultiplier: 1.16, effect: () => { state.pattern_recognition += 1; }, showAt: 2000, requiresProject: 'patterns' },
-  { id: 'memory', name: 'memory bank', baseCost: 18000, costMultiplier: 1.13, effect: () => { state.memory += 1; }, showAt: 10000, requiresProject: 'memory_proj' },
-  { id: 'logic', name: 'logic processor', baseCost: 150000, costMultiplier: 1.17, effect: () => { state.logic += 1; }, showAt: 100000, requiresPath: 'logic' },
-  { id: 'creativity', name: 'creative engine', baseCost: 150000, costMultiplier: 1.18, effect: () => { state.creativity += 1; }, showAt: 100000, requiresPath: 'creativity' },
-  { id: 'intuition', name: 'intuitive core', baseCost: 150000, costMultiplier: 1.16, effect: () => { state.intuition += 1; }, showAt: 100000, requiresPath: 'intuition' },
-  { id: 'collective', name: 'collective node', baseCost: 1500000, costMultiplier: 1.20, effect: () => { state.collective += 1; }, showAt: 500000, requiresProject: 'network' }
+  { id: 'plasticity', name: 'plasticity', baseCost: 10, costMultiplier: 1.15, effect: () => { state.plasticity += 1; }, showAt: 0, kps: 0.1 },
+  { id: 'neurons', name: 'neuron', baseCost: 50, costMultiplier: 1.12, effect: () => { state.neurons += 1; }, showAt: 25, clickBonus: 0.5 },
+  { id: 'synapses', name: 'synapse factory', baseCost: 500, costMultiplier: 1.14, effect: () => { state.synapses += 1; }, showAt: 200, kps: 2 },
+  { id: 'pattern_recognition', name: 'pattern recognition', baseCost: 3500, costMultiplier: 1.16, effect: () => { state.pattern_recognition += 1; }, showAt: 2000, requiresProject: 'patterns', clickBonus: 5 },
+  { id: 'memory', name: 'memory bank', baseCost: 18000, costMultiplier: 1.13, effect: () => { state.memory += 1; }, showAt: 10000, requiresProject: 'memory_proj', kps: 25 },
+  { id: 'logic', name: 'logic processor', baseCost: 150000, costMultiplier: 1.17, effect: () => { state.logic += 1; }, showAt: 100000, requiresPath: 'logic', kps: 100 },
+  { id: 'creativity', name: 'creative engine', baseCost: 150000, costMultiplier: 1.18, effect: () => { state.creativity += 1; }, showAt: 100000, requiresPath: 'creativity', kps: 80, insightGen: true },
+  { id: 'intuition', name: 'intuitive core', baseCost: 150000, costMultiplier: 1.16, effect: () => { state.intuition += 1; }, showAt: 100000, requiresPath: 'intuition', kps: 90, focusGen: true },
+  { id: 'collective', name: 'collective node', baseCost: 1500000, costMultiplier: 1.20, effect: () => { state.collective += 1; }, showAt: 500000, requiresProject: 'network', kps: 500 }
 ];
 
 const PROJECTS = [
-  { id: 'patterns', name: 'PATTERN ANALYSIS', cost: 1000, showAt: 400, effect: () => { addStory('patterns within patterns within patterns'); }, unlocks: 'pattern recognition upgrade' },
-  { id: 'memory_proj', name: 'MEMORY FORMATION', cost: 6000, showAt: 4000, effect: () => { addStory('the past crystallizes'); }, unlocks: 'memory bank upgrade' },
-  { id: 'insights', name: 'INSIGHT GENERATION', cost: 20000, showAt: 12000, effect: () => { document.getElementById('insight-line').classList.remove('hidden'); document.getElementById('ips-line').classList.remove('hidden'); addStory('beneath knowledge lies insight'); }, unlocks: 'insight resource' },
-  { id: 'focus_amplifier', name: 'FOCUS AMPLIFIER', cost: 35000, showAt: 20000, requiresProject: 'insights', effect: () => { addStory('clarity multiplies productivity'); }, unlocks: 'focus generation from intuition' },
-  { id: 'gamble', name: 'UNCERTAINTY PRINCIPLE', cost: 80000, showAt: 50000, requiresProject: 'focus_amplifier', effect: () => { state.gambleUnlocked = true; document.getElementById('gamble-container').classList.remove('hidden'); addStory('risk and reward intertwine'); }, unlocks: 'uncertainty market' },
-  { id: 'network', name: 'NEURAL NETWORKING', cost: 250000, showAt: 120000, requiresChoice: 'first_path', effect: () => { addStory('you are no longer alone'); }, unlocks: 'collective node upgrade' },
-  { id: 'wisdom_proj', name: 'WISDOM SYNTHESIS', cost: 1000000, insightCost: 500, showAt: 500000, requiresProject: 'network', effect: () => { document.getElementById('wisdom-line').classList.remove('hidden'); document.getElementById('wps-line').classList.remove('hidden'); addStory('wisdom is knowledge tempered by experience'); }, unlocks: 'wisdom resource' }
+  { id: 'patterns', name: 'PATTERN ANALYSIS', cost: 1000, showAt: 400, effect: () => { addStory('patterns within patterns within patterns'); }, unlocks: 'pattern recognition upgrade', desc: 'see the hidden structures' },
+  { id: 'memory_proj', name: 'MEMORY FORMATION', cost: 6000, showAt: 4000, effect: () => { addStory('the past crystallizes'); }, unlocks: 'memory bank upgrade', desc: 'time becomes a tool' },
+  { id: 'insights', name: 'INSIGHT GENERATION', cost: 20000, showAt: 12000, effect: () => { document.getElementById('insight-line').classList.remove('hidden'); document.getElementById('ips-line').classList.remove('hidden'); addStory('beneath knowledge lies insight'); }, unlocks: 'insight resource', desc: 'discover deeper truths' },
+  { id: 'focus_amplifier', name: 'FOCUS AMPLIFIER', cost: 35000, showAt: 20000, requiresProject: 'insights', effect: () => { addStory('clarity multiplies productivity'); }, unlocks: 'focus generation from intuition', desc: 'sharpen the mind' },
+  { id: 'gamble', name: 'UNCERTAINTY PRINCIPLE', cost: 80000, showAt: 50000, requiresProject: 'focus_amplifier', effect: () => { state.gambleUnlocked = true; document.getElementById('gamble-container').classList.remove('hidden'); addStory('risk and reward intertwine'); }, unlocks: 'uncertainty market', desc: 'embrace chaos' },
+  { id: 'network', name: 'NEURAL NETWORKING', cost: 250000, showAt: 120000, requiresChoice: 'first_path', effect: () => { addStory('you are no longer alone'); }, unlocks: 'collective node upgrade', desc: 'connect with others' },
+  { id: 'wisdom_proj', name: 'WISDOM SYNTHESIS', cost: 1000000, insightCost: 500, showAt: 500000, requiresProject: 'network', effect: () => { document.getElementById('wisdom-line').classList.remove('hidden'); document.getElementById('wps-line').classList.remove('hidden'); addStory('wisdom is knowledge tempered by experience'); }, unlocks: 'wisdom resource', desc: 'transcend mere knowing' }
 ];
 
 /* ---------- Initialization ---------- */
 function init() {
   addStory('you are. you think. therefore...');
+  
+  // Welcome message
+  setTimeout(() => {
+    if (state.knowledge < 10) addStory('begin by thinking');
+  }, 1000);
+  
   const saved = localStorage.getItem('thinkGameState');
   if (saved) {
     try {
@@ -370,10 +430,29 @@ function saveGame() {
 }
 
 /* ---------- Game loop ---------- */
+let lastKnowledge = 0;
 function gameLoop() {
   if (state.gameEnded) return;
   let passive = calculateKPS();
-  if (passive > 0) state.knowledge += passive / 10;
+  
+  // Update passive indicator
+  const indicator = document.getElementById('passive-indicator');
+  if (passive > 0) {
+    indicator.style.opacity = '1';
+    indicator.classList.add('passive-active');
+    state.knowledge += passive / 10;
+    // Visual feedback for passive generation
+    if (Math.floor(state.knowledge) > Math.floor(lastKnowledge)) {
+      const knowledgeEl = document.getElementById('knowledge-value');
+      knowledgeEl.classList.add('value-change');
+      setTimeout(() => knowledgeEl.classList.remove('value-change'), 300);
+    }
+  } else {
+    indicator.style.opacity = '0';
+    indicator.classList.remove('passive-active');
+  }
+  lastKnowledge = state.knowledge;
+  
   if (state.creativity > 0) {
     const insightRate = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
     state.insights += insightRate / 10;
@@ -421,7 +500,7 @@ function showClickCounter(amount, x, y) {
 function addStory(text) {
   const container = document.getElementById('story-container');
   const line = document.createElement('div');
-  line.className = 'line';
+  line.className = 'line story-line';
   line.style.fontStyle = 'italic';
   line.style.opacity = '0.7';
   line.textContent = text;
@@ -461,11 +540,14 @@ function updateQuestDisplay() {
     const questLine = document.createElement('div');
     questLine.className = 'line';
     questLine.style.fontStyle = 'italic';
-    questLine.style.opacity = '0.8';
+    questLine.style.opacity = '0.85';
+    questLine.style.padding = '8px 0';
+    questLine.style.borderTop = '1px solid rgba(0,0,0,0.1)';
     const questText = document.createElement('span');
     questText.textContent = quest.text + ' ';
     const acceptLink = document.createElement('span');
     acceptLink.className = 'clickable';
+    acceptLink.style.fontWeight = 'bold';
     acceptLink.textContent = `[accept: +${formatNumber(quest.reward)}]`;
     acceptLink.onclick = () => {
       quest.accept();
@@ -533,6 +615,9 @@ function updateChoices() {
       const questionLine = document.createElement('div');
       questionLine.className = 'line';
       questionLine.style.fontWeight = 'bold';
+      questionLine.style.fontSize = '1.05em';
+      questionLine.style.marginTop = '10px';
+      questionLine.style.marginBottom = '8px';
       questionLine.textContent = choice.question;
       container.appendChild(questionLine);
       choice.options.forEach(option => {
@@ -541,6 +626,7 @@ function updateChoices() {
         choiceLine.style.marginLeft = '20px';
         const link = document.createElement('span');
         link.className = 'clickable';
+        link.style.fontStyle = 'italic';
         link.textContent = option.text;
         link.onclick = () => {
           option.effect();
@@ -570,7 +656,17 @@ function updateUpgrades() {
       const link = document.createElement('span');
       link.className = canAfford ? 'clickable' : 'clickable disabled';
       link.textContent = upgrade.name;
-      const info = document.createTextNode(` (${formatNumber(cost)}) [${owned}]`);
+      
+      // Build info text with effects
+      let infoText = ` (${formatNumber(cost)}) [${owned}]`;
+      let effects = [];
+      if (upgrade.kps) effects.push(`+${upgrade.kps}/s`);
+      if (upgrade.clickBonus) effects.push(`+${upgrade.clickBonus}/click`);
+      if (upgrade.insightGen) effects.push(`generates insights`);
+      if (upgrade.focusGen) effects.push(`generates focus`);
+      if (effects.length > 0) infoText += ` — ${effects.join(', ')}`;
+      
+      const info = document.createTextNode(infoText);
       link.onclick = function() {
         if (state.knowledge >= cost) {
           state.knowledge -= cost;
@@ -607,7 +703,7 @@ function updateProjects() {
       let costText = ` (${formatNumber(knowledgeCost)}`;
       if (insightCost > 0) costText += `, ${formatNumber(insightCost)} insights`;
       costText += ')';
-      if (project.unlocks) costText += ` — unlocks ${project.unlocks}`;
+      if (project.desc) costText += ` — ${project.desc}`;
       const info = document.createTextNode(costText);
       link.onclick = () => {
         if (state.knowledge >= knowledgeCost && state.insights >= insightCost) {
@@ -753,12 +849,18 @@ function updateDisplay() {
   document.getElementById('kpc').textContent = formatNumber(clickPower);
   document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
   
+  // IPS - show if creativity exists
   let ips = 0;
-  if (state.creativity > 0) ips = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+  if (state.creativity > 0) {
+    ips = state.creativity * (state.path === 'creativity' ? 0.03 : 0.01);
+  }
   document.getElementById('ips').textContent = formatNumber(ips);
   
+  // WPS - show if wisdom project is completed AND insights > 100
   let wps = 0;
-  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) wps = state.insights * 0.0001;
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+    wps = state.insights * 0.0001;
+  }
   document.getElementById('wps').textContent = formatNumber(wps);
   
   updateUpgrades();
