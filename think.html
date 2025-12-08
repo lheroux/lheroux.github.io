@@ -935,7 +935,19 @@ function updateQuestDisplay() {
 
 function updateEnlightenmentDisplay() {
   const container = document.getElementById('enlighten-container');
-  if (state.knowledge >= 1000000 || state.totalEnlightenments > 0) {
+  
+  // Calculate required knowledge for next enlightenment based on completed cycles
+  const getRequiredKnowledge = () => {
+    const base = 1000000;
+    const multiplier = Math.pow(2.5, state.totalEnlightenments);
+    return Math.floor(base * multiplier);
+  };
+  
+  const requiredKnowledge = getRequiredKnowledge();
+  const hasEnoughKnowledge = state.knowledge >= requiredKnowledge;
+  
+  // Show if player has reached threshold OR has already enlightened at least once
+  if (hasEnoughKnowledge || state.totalEnlightenments > 0) {
     container.classList.remove('hidden');
     container.innerHTML = '';
     
@@ -949,24 +961,48 @@ function updateEnlightenmentDisplay() {
     text.textContent = 'enlighten — ';
     text.style.fontWeight = 'bold';
     
+    line.appendChild(text);
+    
     const link = document.createElement('span');
-    const canEnlighten = state.enlightenCooldown <= 0;
-    link.className = canEnlighten ? 'clickable enlighten-ready' : 'clickable disabled';
-    link.textContent = canEnlighten ? 'restart cycle (+' + formatNumber(wisdomGain) + ' wisdom)' : 'cooling down...';
+    const canEnlighten = state.enlightenCooldown <= 0 && hasEnoughKnowledge;
+    
+    if (canEnlighten) {
+      link.className = 'clickable enlighten-ready';
+      link.textContent = 'restart cycle (+' + formatNumber(wisdomGain) + ' wisdom)';
+    } else if (!hasEnoughKnowledge) {
+      link.className = 'clickable disabled';
+      const remaining = requiredKnowledge - state.knowledge;
+      link.textContent = 'need ' + formatNumber(remaining) + ' more knowledge';
+    } else if (state.enlightenCooldown > 0) {
+      link.className = 'clickable disabled';
+      link.textContent = 'cooling down...';
+    }
+    
     link.onclick = () => {
-      if (canEnlighten) enlighten();
+      if (state.knowledge >= requiredKnowledge && state.enlightenCooldown <= 0) {
+        enlighten();
+      }
     };
+    
+    line.appendChild(link);
+    container.appendChild(line);
     
     const info = document.createElement('div');
     info.style.fontSize = '0.85em';
     info.style.opacity = '0.7';
     info.style.marginTop = '5px';
     info.textContent = 'cycles completed: ' + state.totalEnlightenments;
+    container.appendChild(info);
     
-    line.appendChild(text);
-    line.appendChild(link);
-    line.appendChild(info);
-    container.appendChild(line);
+    if (state.totalEnlightenments > 0 && !hasEnoughKnowledge) {
+      const nextReq = document.createElement('div');
+      nextReq.style.fontSize = '0.85em';
+      nextReq.style.opacity = '0.6';
+      nextReq.style.fontStyle = 'italic';
+      nextReq.style.marginTop = '2px';
+      nextReq.textContent = 'next cycle at: ' + formatNumber(requiredKnowledge) + ' knowledge';
+      container.appendChild(nextReq);
+    }
   } else {
     container.classList.add('hidden');
   }
@@ -985,6 +1021,14 @@ function calculateWisdomGain() {
 
 function enlighten() {
   if (state.enlightenCooldown > 0) return;
+  
+  // Calculate required knowledge for this enlightenment
+  const base = 1000000;
+  const multiplier = Math.pow(2.5, state.totalEnlightenments);
+  const requiredKnowledge = Math.floor(base * multiplier);
+  
+  // Check if player has enough knowledge
+  if (state.knowledge < requiredKnowledge) return;
   
   const wisdomGain = calculateWisdomGain();
   const preservedWisdom = state.wisdom + wisdomGain;
@@ -1043,6 +1087,13 @@ function enlighten() {
   addStory('cycle ' + preservedTotalEnlightenments + ' begins');
   addStory('you carry the wisdom of infinity');
   if (startKnowledge > 0) addStory('neural echoes: +' + formatNumber(startKnowledge) + ' knowledge');
+  
+  // Show next enlightenment requirement
+  const nextBase = 1000000;
+  const nextMultiplier = Math.pow(2.5, preservedTotalEnlightenments);
+  const nextRequired = Math.floor(nextBase * nextMultiplier);
+  addStory('next enlightenment at: ' + formatNumber(nextRequired) + ' knowledge');
+  
   addStory('━━━━━━━━━━━━━━━━━━━━━━');
   
   applyPathColor();
