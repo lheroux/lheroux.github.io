@@ -14,22 +14,25 @@
       color: #2c2c2c;
       line-height: 1.6;
       font-size: 14px;
-      transition: color 0.5s ease;
+      transition: all 1.5s ease;
+    }
+    body.ending-darkness {
+      background: #2a2a2a;
+      color: #777;
     }
     #game-wrapper {
       display: flex;
-      gap: 80px;
-      max-width: 1100px;
+      gap: 50px;
+      max-width: 1400px;
       margin: 0 auto;
       justify-content: center;
     }
-    #main-content { width: 600px; flex-shrink: 0; position: relative; }
-    #story-container { width: 280px; flex-shrink: 0; }
     #eternal-upgrades-column {
-      width: 250px;
+      width: 220px;
       flex-shrink: 0;
-      margin-right: 20px;
     }
+    #main-content { width: 600px; flex-shrink: 0; position: relative; }
+    #story-and-enlighten { width: 280px; flex-shrink: 0; }
     .clickable { 
       cursor: pointer; 
       user-select: none; 
@@ -95,9 +98,10 @@
       animation: pulse 2s ease-in-out infinite;
     }
     #story-container { 
-      max-height: 70vh; 
+      max-height: 50vh; 
       overflow-y: auto; 
       padding: 0;
+      margin-bottom: 20px;
     }
     #story-container::-webkit-scrollbar { width: 6px; }
     #story-container::-webkit-scrollbar-track { background: transparent; }
@@ -112,10 +116,11 @@
       50% { opacity: 1; transform: scale(1.02); }
     }
     .meta-upgrade {
-      padding: 8px 0;
+      padding: 6px 0;
       border-left: 3px solid rgba(0,0,0,0.2);
       padding-left: 10px;
-      margin: 5px 0;
+      margin: 4px 0;
+      font-size: 0.9em;
     }
     .transcendent {
       background: linear-gradient(90deg, rgba(255,215,0,0.1), rgba(138,43,226,0.1));
@@ -129,10 +134,10 @@
     }
     .galaxy-upgrade {
       background: linear-gradient(90deg, 
-        rgba(148, 0, 211, 0.15),  /* Dark violet */
-        rgba(75, 0, 130, 0.15),   /* Indigo */
-        rgba(0, 0, 255, 0.15),    /* Blue */
-        rgba(0, 255, 255, 0.15)   /* Cyan */
+        rgba(148, 0, 211, 0.15),
+        rgba(75, 0, 130, 0.15),
+        rgba(0, 0, 255, 0.15),
+        rgba(0, 255, 255, 0.15)
       );
       border: 1px solid rgba(255, 255, 255, 0.3);
       padding: 8px 10px;
@@ -177,14 +182,6 @@
       margin-top: 5px;
       padding-left: 15px;
     }
-    .infinity-mode {
-      background: linear-gradient(45deg, rgba(255,215,0,0.2), rgba(138,43,226,0.2), rgba(0,255,255,0.2));
-      animation: infinityGlow 3s ease-in-out infinite;
-    }
-    @keyframes infinityGlow {
-      0%, 100% { filter: brightness(1); }
-      50% { filter: brightness(1.2); }
-    }
     .path-logic { color: #1a2a4a !important; }
     .path-creativity { color: #4a1a1a !important; }
     .path-intuition { color: #2a1a4a !important; }
@@ -196,12 +193,47 @@
       padding-left: 10px;
       color: #8b0000;
     }
+    #final-ending-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 2s ease;
+      pointer-events: none;
+    }
+    #final-ending-container.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .ending-text {
+      font-size: 1.5em;
+      font-style: italic;
+      margin: 30px 0;
+      line-height: 1.8;
+    }
+    .ending-button {
+      font-size: 1.2em;
+      padding: 15px 35px;
+      cursor: pointer;
+      background: rgba(100, 100, 100, 0.3);
+      border: 2px solid #888;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .ending-button:hover {
+      background: rgba(120, 120, 120, 0.5);
+      transform: scale(1.05);
+      border-color: #aaa;
+    }
   </style>
 </head>
 <body>
 
   <div id="game-wrapper">
-    <!-- Eternal Upgrades Column - Added to left side -->
     <div id="eternal-upgrades-column">
       <div id="meta-upgrade-container" class="hidden"></div>
     </div>
@@ -240,9 +272,10 @@
       <div id="quest-container" style="margin-top: 20px;"></div>
     </div>
 
-    <div id="story-container"></div>
-    <!-- Enlighten button moved below story container -->
-    <div id="enlighten-container" class="hidden" style="margin-top: 15px; width: 280px;"></div>
+    <div id="story-and-enlighten">
+      <div id="story-container"></div>
+      <div id="enlighten-container" class="hidden" style="padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1);"></div>
+    </div>
   </div>
 
   <div class="save-links">
@@ -255,8 +288,13 @@
   <a class="home-link" href="index.html">home</a>
 
   <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
-    <div style="margin-bottom: 2px;">game version AMAIA (9.0xVA)</div>
+    <div style="margin-bottom: 2px;">game version AMAIA (9.1xVA)</div>
     <div>© laurent héroux 2025</div>
+  </div>
+
+  <div id="final-ending-container">
+    <div class="ending-text">"To know everything is to become nothing.<br>To become nothing is to know everything."</div>
+    <div class="clickable ending-button" id="final-ending-btn">embrace the void</div>
   </div>
 
 <script>
@@ -281,6 +319,9 @@ let state = {
   quantum_entanglement: 0,
   stellar_synthesis: 0,
   cosmic_convergence: 0,
+  void_resonator: 0,
+  dimensional_matrix: 0,
+  infinity_catalyst: 0,
   totalClicks: 0,
   phase: 1,
   path: null,
@@ -295,7 +336,9 @@ let state = {
   resonance: 0,
   bestKnowledge: 0,
   infinityMode: false,
-  secretsFound: 0
+  secretsFound: 0,
+  finalEnding: false,
+  enlightenCooldown: 0
 };
 
 const META_UPGRADES = [
@@ -413,7 +456,10 @@ const UPGRADE_DESCRIPTIONS = {
   'nebula_nexus': 'a galactic core of pure thought energy forms',
   'quantum_entanglement': 'thoughts become entangled across dimensions',
   'stellar_synthesis': 'stars are born from concentrated cognition',
-  'cosmic_convergence': 'the universe itself begins to think through you'
+  'cosmic_convergence': 'the universe itself begins to think through you',
+  'void_resonator': 'the absence of thought becomes infinite presence',
+  'dimensional_matrix': 'reality bends to your will across infinite planes',
+  'infinity_catalyst': 'you approach the final threshold of existence'
 };
 
 const UPGRADES = [
@@ -422,18 +468,20 @@ const UPGRADES = [
   { id: 'synapses', name: 'synapse factory', baseCost: 250, costMultiplier: 1.14, effect: () => { state.synapses += 1; }, showAt: 100, kps: 2 },
   { id: 'pattern_recognition', name: 'pattern recognition', baseCost: 1500, costMultiplier: 1.16, effect: () => { state.pattern_recognition += 1; }, showAt: 800, requiresProject: 'patterns', clickBonus: 5 },
   { id: 'memory', name: 'memory bank', baseCost: 8000, costMultiplier: 1.13, effect: () => { state.memory += 1; }, showAt: 5000, requiresProject: 'memory_proj', kps: 25 },
-  { id: 'logic', name: 'logic processor', baseCost: 75000, costMultiplier: 1.17, effect: () => { state.logic += 1; }, showAt: 50000, requiresPath: 'logic', kps: 100, tradeoff: 'creativity', tradeoffExplanation: 'reduces creativity effectiveness by 30%' },
-  { id: 'creativity', name: 'creative engine', baseCost: 75000, costMultiplier: 1.18, effect: () => { state.creativity += 1; }, showAt: 50000, requiresPath: 'creativity', kps: 80, insightGen: true, tradeoff: 'logic', tradeoffExplanation: 'reduces logic effectiveness by 20%' },
-  { id: 'intuition', name: 'intuitive core', baseCost: 75000, costMultiplier: 1.16, effect: () => { state.intuition += 1; }, showAt: 50000, requiresPath: 'intuition', kps: 90, focusGen: true, tradeoff: 'pattern_recognition', tradeoffExplanation: 'reduces pattern recognition by 10%' },
+  { id: 'logic', name: 'logic processor', baseCost: 75000, costMultiplier: 1.17, effect: () => { state.logic += 1; }, showAt: 50000, requiresPath: 'logic', kps: 100, tradeoff: 'creativity', tradeoffExplanation: 'each logic processor reduces creativity engine production by 30%' },
+  { id: 'creativity', name: 'creative engine', baseCost: 75000, costMultiplier: 1.18, effect: () => { state.creativity += 1; }, showAt: 50000, requiresPath: 'creativity', kps: 80, insightGen: true, tradeoff: 'logic', tradeoffExplanation: 'each creative engine reduces logic processor production by 20%' },
+  { id: 'intuition', name: 'intuitive core', baseCost: 75000, costMultiplier: 1.16, effect: () => { state.intuition += 1; }, showAt: 50000, requiresPath: 'intuition', kps: 90, focusGen: true, tradeoff: 'pattern_recognition', tradeoffExplanation: 'each intuitive core reduces pattern recognition click bonus by 10%' },
   { id: 'collective', name: 'collective node', baseCost: 750000, costMultiplier: 1.20, effect: () => { state.collective += 1; }, showAt: 400000, requiresProject: 'network', kps: 500 },
   { id: 'divergence', name: 'divergence engine', baseCost: 1500000, costMultiplier: 1.22, effect: () => { state.divergence += 1; }, showAt: 600000, requiresChoice: 'divergence_choice', requiresChoiceValue: 'divergence', kps: 1000, special: true },
   { id: 'convergence', name: 'convergence core', baseCost: 1500000, costMultiplier: 1.22, effect: () => { state.convergence += 1; }, showAt: 600000, requiresChoice: 'divergence_choice', requiresChoiceValue: 'convergence', clickBonus: 100, special: true },
   { id: 'transcendence', name: 'transcendence node', baseCost: 5000000, costMultiplier: 1.25, effect: () => { state.transcendence += 1; }, showAt: 2000000, requiresMeta: 'transcendent_mind', kps: 5000, special: true },
-  // New galaxy chrome style upgrades
   { id: 'nebula_nexus', name: 'nebula nexus', baseCost: 2000000, costMultiplier: 1.28, effect: () => { state.nebula_nexus += 1; }, showAt: 1000000, requiresProject: 'wisdom_proj', kps: 2000, special: true, galaxy: true },
   { id: 'quantum_entanglement', name: 'quantum entanglement', baseCost: 5000000, costMultiplier: 1.30, effect: () => { state.quantum_entanglement += 1; }, showAt: 3000000, requiresMeta: 'infinite_recursion', kps: 5000, clickBonus: 500, special: true, galaxy: true },
   { id: 'stellar_synthesis', name: 'stellar synthesis', baseCost: 10000000, costMultiplier: 1.32, effect: () => { state.stellar_synthesis += 1; }, showAt: 5000000, requiresProject: 'secret_convergence', kps: 10000, special: true, galaxy: true },
-  { id: 'cosmic_convergence', name: 'cosmic convergence', baseCost: 25000000, costMultiplier: 1.35, effect: () => { state.cosmic_convergence += 1; }, showAt: 10000000, requiresMeta: 'transcendent_mind', kps: 25000, special: true, galaxy: true }
+  { id: 'cosmic_convergence', name: 'cosmic convergence', baseCost: 25000000, costMultiplier: 1.35, effect: () => { state.cosmic_convergence += 1; }, showAt: 10000000, requiresMeta: 'transcendent_mind', kps: 25000, special: true, galaxy: true },
+  { id: 'void_resonator', name: 'void resonator', baseCost: 50000000, costMultiplier: 1.38, effect: () => { state.void_resonator += 1; }, showAt: 30000000, requiresMeta: 'transcendent_mind', kps: 50000, special: true, galaxy: true },
+  { id: 'dimensional_matrix', name: 'dimensional matrix', baseCost: 100000000, costMultiplier: 1.40, effect: () => { state.dimensional_matrix += 1; }, showAt: 60000000, requiresProject: 'secret_convergence', kps: 100000, clickBonus: 10000, special: true, galaxy: true },
+  { id: 'infinity_catalyst', name: 'infinity catalyst', baseCost: 500000000, costMultiplier: 1.45, effect: () => { state.infinity_catalyst += 1; }, showAt: 200000000, requiresMeta: 'transcendent_mind', kps: 500000, special: true, galaxy: true }
 ];
 
 const PROJECTS = [
@@ -466,31 +514,30 @@ function calculateKPS() {
   passive += state.plasticity * 0.1 * plasticityMult;
   passive += state.synapses * 2;
   passive += state.memory * 25;
-  passive += state.logic * 100;
-  passive += state.creativity * 80;
+  
+  let logicProd = state.logic * 100;
+  if (state.creativity > 0) logicProd *= 0.8;
+  passive += logicProd;
+  
+  let creativityProd = state.creativity * 80;
+  if (state.logic > 0) creativityProd *= 0.7;
+  passive += creativityProd;
+  
   passive += state.intuition * 90;
   passive += state.collective * 500;
   passive += state.divergence * 1000;
   
-  // Path bonuses with tradeoffs
-  if (state.path === 'logic') {
-    passive *= 1.5;
-    if (state.creativity > 0) passive *= 0.7;
-  }
-  if (state.path === 'creativity') {
-    passive *= 1.2;
-    if (state.logic > 0) passive *= 0.8;
-  }
-  if (state.path === 'intuition') {
-    passive *= 1.3;
-    if (state.pattern_recognition > 5) passive *= 0.9;
-  }
+  if (state.path === 'logic') passive *= 1.5;
+  if (state.path === 'creativity') passive *= 1.2;
+  if (state.path === 'intuition') passive *= 1.3;
   
-  // New galaxy upgrades
   passive += state.nebula_nexus * 2000;
   passive += state.quantum_entanglement * 5000;
   passive += state.stellar_synthesis * 10000;
   passive += state.cosmic_convergence * 25000;
+  passive += state.void_resonator * 50000;
+  passive += state.dimensional_matrix * 100000;
+  passive += state.infinity_catalyst * 500000;
   
   if (state.phase >= 2) passive *= 2;
   if (state.totalEnlightenments > 0) passive *= Math.pow(1.5, state.totalEnlightenments);
@@ -499,8 +546,6 @@ function calculateKPS() {
   if (state.metaUpgrades['infinite_recursion']) passive *= 1.5;
   if (state.resonance > 0) passive *= (1 + state.resonance / 100);
   
-  if (state.infinityMode) passive *= 10;
-  
   passive += state.transcendence * 5000;
   
   return passive;
@@ -508,23 +553,43 @@ function calculateKPS() {
 
 function calculateClickPower() {
   let gain = 1;
-  gain += state.neurons * 0.5;
-  gain += state.pattern_recognition * 5;
-  gain += state.convergence * 100;
-  gain += state.quantum_entanglement * 500;
+  
+  if (typeof state.neurons === 'number' && !isNaN(state.neurons)) {
+    gain += state.neurons * 0.5;
+  }
+  
+  if (typeof state.pattern_recognition === 'number' && !isNaN(state.pattern_recognition)) {
+    let patternBonus = state.pattern_recognition * 5;
+    if (state.intuition > 0) patternBonus *= 0.9;
+    gain += patternBonus;
+  }
+  
+  if (typeof state.convergence === 'number' && !isNaN(state.convergence)) {
+    gain += state.convergence * 100;
+  }
+  
+  if (typeof state.quantum_entanglement === 'number' && !isNaN(state.quantum_entanglement)) {
+    gain += state.quantum_entanglement * 500;
+  }
+  
+  if (typeof state.dimensional_matrix === 'number' && !isNaN(state.dimensional_matrix)) {
+    gain += state.dimensional_matrix * 10000;
+  }
   
   if (state.path === 'logic') gain *= 1.8;
-  if (state.path === 'intuition') gain *= 1.5;
-  if (state.path === 'creativity') gain *= 1.3;
+  else if (state.path === 'intuition') gain *= 1.5;
+  else if (state.path === 'creativity') gain *= 1.3;
+  
   if (state.phase >= 2) gain *= 2;
   
   if (state.totalEnlightenments > 0) gain *= Math.pow(1.5, state.totalEnlightenments);
-  if (state.focus > 0) gain *= (1 + state.focus * 0.001);
+  if (typeof state.focus === 'number' && !isNaN(state.focus) && state.focus > 0) {
+    gain *= (1 + state.focus * 0.001);
+  }
   if (state.metaUpgrades['synaptic_burst']) gain *= 5;
   if (state.metaUpgrades['infinite_recursion']) gain *= 2;
-  if (state.infinityMode) gain *= 5;
   
-  return gain;
+  return Math.max(1, gain);
 }
 
 function getKPSBreakdown() {
@@ -540,9 +605,12 @@ function getKPSBreakdown() {
   if (state.divergence > 0) breakdown.push('divergence: ' + formatNumber(state.divergence * 1000));
   if (state.transcendence > 0) breakdown.push('transcendence: ' + formatNumber(state.transcendence * 5000));
   if (state.nebula_nexus > 0) breakdown.push('nebula nexus: ' + formatNumber(state.nebula_nexus * 2000));
-  if (state.quantum_entanglement > 0) breakdown.push('quantum entanglement: ' + formatNumber(state.quantum_entanglement * 5000));
-  if (state.stellar_synthesis > 0) breakdown.push('stellar synthesis: ' + formatNumber(state.stellar_synthesis * 10000));
-  if (state.cosmic_convergence > 0) breakdown.push('cosmic convergence: ' + formatNumber(state.cosmic_convergence * 25000));
+  if (state.quantum_entanglement > 0) breakdown.push('quantum: ' + formatNumber(state.quantum_entanglement * 5000));
+  if (state.stellar_synthesis > 0) breakdown.push('stellar: ' + formatNumber(state.stellar_synthesis * 10000));
+  if (state.cosmic_convergence > 0) breakdown.push('cosmic: ' + formatNumber(state.cosmic_convergence * 25000));
+  if (state.void_resonator > 0) breakdown.push('void: ' + formatNumber(state.void_resonator * 50000));
+  if (state.dimensional_matrix > 0) breakdown.push('dimensional: ' + formatNumber(state.dimensional_matrix * 100000));
+  if (state.infinity_catalyst > 0) breakdown.push('infinity: ' + formatNumber(state.infinity_catalyst * 500000));
   return breakdown;
 }
 
@@ -573,6 +641,33 @@ function updateResonance() {
     state.resonance = Math.min(200, state.resonance + resonanceGain);
   }
 }
+
+function checkFinalEnding() {
+  if (state.finalEnding) return;
+  
+  const hasAllGalaxy = state.infinity_catalyst >= 3 && state.dimensional_matrix >= 5 && state.void_resonator >= 5;
+  const highEnlightenments = state.totalEnlightenments >= 100;
+  const highWisdom = state.wisdom >= 10000;
+  
+  if (hasAllGalaxy && highEnlightenments && highWisdom) {
+    const endingContainer = document.getElementById('final-ending-container');
+    endingContainer.classList.add('visible');
+  }
+}
+
+document.getElementById('final-ending-btn').onclick = () => {
+  state.finalEnding = true;
+  document.body.classList.add('ending-darkness');
+  const endingContainer = document.getElementById('final-ending-container');
+  endingContainer.style.opacity = '0';
+  setTimeout(() => {
+    endingContainer.innerHTML = '<div class="ending-text" style="font-size: 2em;">the void embraces you</div>';
+    endingContainer.style.opacity = '1';
+  }, 2000);
+  setTimeout(() => {
+    endingContainer.style.opacity = '0';
+  }, 5000);
+};
 
 function saveGame() {
   const saveData = JSON.stringify(state);
@@ -631,7 +726,34 @@ function importSave() {
 }
 
 function init() {
-  if (!loadGame()) {
+  const loaded = loadGame();
+  
+  if (!loaded) {
+    // Ensure state has all default values
+    state.knowledge = 0;
+    state.insights = 0;
+    state.focus = 0;
+    state.wisdom = 0;
+    state.plasticity = 0;
+    state.neurons = 0;
+    state.synapses = 0;
+    state.pattern_recognition = 0;
+    state.memory = 0;
+    state.creativity = 0;
+    state.logic = 0;
+    state.intuition = 0;
+    state.collective = 0;
+    state.divergence = 0;
+    state.convergence = 0;
+    state.transcendence = 0;
+    state.totalClicks = 0;
+    state.phase = 1;
+    state.enlightenments = 0;
+    state.totalEnlightenments = 0;
+    state.resonance = 0;
+    state.bestKnowledge = 0;
+    state.enlightenCooldown = 0;
+    
     addStory('you are. you think. therefore...');
     setTimeout(() => {
       if (state.knowledge < 10) addStory('begin by thinking');
@@ -644,14 +766,34 @@ function init() {
   document.getElementById('export-button').onclick = exportSave;
   document.getElementById('import-button').onclick = importSave;
   
+  document.getElementById('think-button').onclick = (e) => {
+    let gain = calculateClickPower();
+    state.knowledge = (state.knowledge || 0) + gain;
+    state.totalClicks++;
+    const rect = e.target.getBoundingClientRect();
+    showClickCounter(gain, rect.left + rect.width / 2, rect.top);
+    if (state.totalClicks === 1) {
+      document.getElementById('per-second-panel').classList.remove('hidden');
+    }
+    updateDisplay();
+    checkStories();
+    checkQuests();
+  };
+  
+  document.getElementById('think-button').onmousedown = (e) => {
+    if (e.button === 0) {
+      e.preventDefault();
+    }
+  };
+  
   setInterval(saveGame, 30000);
   
   render();
   setInterval(gameLoop, 100);
   setInterval(updateResonance, 1000);
+  setInterval(checkFinalEnding, 5000);
 }
 
-// Developer cheat: press 'o' five times in 5 seconds
 let oKeyPresses = [];
 document.addEventListener('keydown', (e) => {
   if (e.key === 'o' || e.key === 'O') {
@@ -671,6 +813,10 @@ document.addEventListener('keydown', (e) => {
 
 let lastKnowledge = 0;
 function gameLoop() {
+  if (state.enlightenCooldown > 0) {
+    state.enlightenCooldown -= 0.1;
+  }
+  
   let passive = calculateKPS();
   
   const indicator = document.getElementById('passive-indicator');
@@ -714,34 +860,6 @@ function gameLoop() {
   updateDisplay();
   checkQuests();
 }
-
-document.getElementById('think-button').onclick = (e) => {
-  let gain = calculateClickPower();
-  state.knowledge += gain;
-  state.totalClicks++;
-  const rect = e.target.getBoundingClientRect();
-  showClickCounter(gain, rect.left + rect.width / 2, rect.top);
-  if (state.totalClicks === 1) {
-    document.getElementById('per-second-panel').classList.remove('hidden');
-  }
-  updateDisplay();
-};
-
-// Enable mousedown for trackpad clicking
-document.getElementById('think-button').onmousedown = (e) => {
-  if (e.button === 0) {
-    let gain = calculateClickPower();
-    state.knowledge += gain;
-    state.totalClicks++;
-    const rect = e.target.getBoundingClientRect();
-    showClickCounter(gain, rect.left + rect.width / 2, rect.top);
-    if (state.totalClicks === 1) {
-      document.getElementById('per-second-panel').classList.remove('hidden');
-    }
-    updateDisplay();
-    e.preventDefault();
-  }
-};
 
 function showClickCounter(amount, x, y) {
   const counter = document.createElement('div');
@@ -823,9 +941,7 @@ function updateEnlightenmentDisplay() {
     
     const line = document.createElement('div');
     line.className = 'line';
-    if (state.infinityMode) line.classList.add('infinity-mode');
     line.style.padding = '12px 0';
-    line.style.marginBottom = '10px';
     
     const wisdomGain = calculateWisdomGain();
     
@@ -834,9 +950,12 @@ function updateEnlightenmentDisplay() {
     text.style.fontWeight = 'bold';
     
     const link = document.createElement('span');
-    link.className = 'clickable enlighten-ready';
-    link.textContent = 'restart cycle (+' + formatNumber(wisdomGain) + ' wisdom)';
-    link.onclick = () => enlighten();
+    const canEnlighten = state.enlightenCooldown <= 0;
+    link.className = canEnlighten ? 'clickable enlighten-ready' : 'clickable disabled';
+    link.textContent = canEnlighten ? 'restart cycle (+' + formatNumber(wisdomGain) + ' wisdom)' : 'cooling down...';
+    link.onclick = () => {
+      if (canEnlighten) enlighten();
+    };
     
     const info = document.createElement('div');
     info.style.fontSize = '0.85em';
@@ -865,13 +984,15 @@ function calculateWisdomGain() {
 }
 
 function enlighten() {
+  if (state.enlightenCooldown > 0) return;
+  
   const wisdomGain = calculateWisdomGain();
   const preservedWisdom = state.wisdom + wisdomGain;
   const preservedMetaUpgrades = {...state.metaUpgrades};
   const preservedTotalEnlightenments = state.totalEnlightenments + 1;
-  const preservedInfinityMode = state.infinityMode;
   const preservedSecretsFound = state.secretsFound;
   const preservedPath = state.path;
+  const preservedFinalEnding = state.finalEnding;
   
   const startKnowledge = state.metaUpgrades['neural_memory'] ? Math.floor(state.bestKnowledge * 0.1) : 0;
   
@@ -896,6 +1017,9 @@ function enlighten() {
     quantum_entanglement: 0,
     stellar_synthesis: 0,
     cosmic_convergence: 0,
+    void_resonator: 0,
+    dimensional_matrix: 0,
+    infinity_catalyst: 0,
     totalClicks: 0,
     phase: 1,
     path: preservedPath,
@@ -909,8 +1033,10 @@ function enlighten() {
     metaUpgrades: preservedMetaUpgrades,
     resonance: 0,
     bestKnowledge: 0,
-    infinityMode: preservedInfinityMode,
-    secretsFound: preservedSecretsFound
+    infinityMode: false,
+    secretsFound: preservedSecretsFound,
+    finalEnding: preservedFinalEnding,
+    enlightenCooldown: 2
   };
   
   addStory('━━━━━━━━━━━━━━━━━━━━━━');
@@ -932,26 +1058,31 @@ function updateMetaUpgrades() {
   
   if (availableUpgrades.length > 0 || Object.keys(state.metaUpgrades).length > 0) {
     container.classList.remove('hidden');
-    container.innerHTML = '<div class="line" style="font-weight: bold; margin-bottom: 8px;">eternal upgrades</div>';
+    container.innerHTML = '<div class="line" style="font-weight: bold; margin-bottom: 10px; font-size: 0.95em;">eternal upgrades</div>';
     
     META_UPGRADES.forEach(upgrade => {
       if (state.metaUpgrades[upgrade.id]) {
         const line = document.createElement('div');
-        line.className = 'line meta-upgrade transcendent';
+        line.className = 'meta-upgrade transcendent';
         line.style.opacity = '0.6';
-        line.textContent = '✓ ' + upgrade.name + ' — ' + upgrade.effect;
+        line.textContent = '✓ ' + upgrade.name;
+        const desc = document.createElement('div');
+        desc.style.fontSize = '0.85em';
+        desc.style.opacity = '0.7';
+        desc.style.marginTop = '2px';
+        desc.textContent = upgrade.effect;
+        line.appendChild(desc);
         container.appendChild(line);
       }
     });
     
     availableUpgrades.forEach(upgrade => {
       const line = document.createElement('div');
-      line.className = 'line meta-upgrade';
+      line.className = 'meta-upgrade';
       const canAfford = state.wisdom >= upgrade.wisdomCost;
       const link = document.createElement('span');
       link.className = canAfford ? 'clickable' : 'clickable disabled';
       link.textContent = upgrade.name;
-      const info = document.createTextNode(' (' + formatNumber(upgrade.wisdomCost) + ' wisdom) — ' + upgrade.effect);
       link.onclick = () => {
         if (state.wisdom >= upgrade.wisdomCost) {
           state.wisdom -= upgrade.wisdomCost;
@@ -967,6 +1098,11 @@ function updateMetaUpgrades() {
           updateDisplay();
         }
       };
+      const info = document.createElement('div');
+      info.style.fontSize = '0.85em';
+      info.style.opacity = '0.7';
+      info.style.marginTop = '2px';
+      info.textContent = formatNumber(upgrade.wisdomCost) + ' wisdom — ' + upgrade.effect;
       line.appendChild(link);
       line.appendChild(info);
       container.appendChild(line);
@@ -1001,7 +1137,6 @@ function updateChoices() {
         link.className = 'clickable';
         link.style.fontStyle = 'italic';
         
-        // Apply color preview to choice text
         if (choice.id === 'first_path') {
           if (option.id === 'logic') link.classList.add('path-logic');
           if (option.id === 'creativity') link.classList.add('path-creativity');
@@ -1071,7 +1206,6 @@ function updateUpgrades() {
       line.appendChild(link);
       line.appendChild(info);
       
-      // Add tradeoff explanation tooltip if it exists
       if (upgrade.tradeoffExplanation) {
         const tooltip = document.createElement('div');
         tooltip.className = 'tradeoff-tooltip';
@@ -1143,6 +1277,9 @@ function updateResources() {
   if (state.quantum_entanglement > 0) resources.push('quantum entanglement: ' + formatNumber(state.quantum_entanglement));
   if (state.stellar_synthesis > 0) resources.push('stellar synthesis: ' + formatNumber(state.stellar_synthesis));
   if (state.cosmic_convergence > 0) resources.push('cosmic convergence: ' + formatNumber(state.cosmic_convergence));
+  if (state.void_resonator > 0) resources.push('void resonator: ' + formatNumber(state.void_resonator));
+  if (state.dimensional_matrix > 0) resources.push('dimensional matrix: ' + formatNumber(state.dimensional_matrix));
+  if (state.infinity_catalyst > 0) resources.push('infinity catalyst: ' + formatNumber(state.infinity_catalyst));
   if (resources.length > 0) {
     container.classList.remove('hidden');
     resources.forEach(r => {
@@ -1157,7 +1294,7 @@ function updateResources() {
 }
 
 function formatNumber(num) {
-  if (typeof num !== 'number') num = Number(num) || 0;
+  if (typeof num !== 'number' || isNaN(num)) num = 0;
   const floored = Math.floor(num);
   return floored.toLocaleString('en-US');
 }
@@ -1220,7 +1357,10 @@ function updateDisplay() {
   updateMetaUpgrades();
 }
 
-init();
+window.addEventListener('DOMContentLoaded', () => {
+  init();
+});
+
 </script>
 </body>
 </html>
