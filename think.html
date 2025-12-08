@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>think</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: "Times New Roman", serif;
+      background: #fafaf8;
+      color: #2c2c2c;
+      line-height: 1.6;
+      font-size: 14px;
+      transition: all 1.5s ease;
+    }
+    body.ending-darkness {
+      background: #2a2a2a;
+      color: #777;
+    }
+    #game-wrapper {
+      display: flex;
+      gap: 50px;
+      max-width: 1400px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+    #eternal-upgrades-column {
+      width: 220px;
+      flex-shrink: 0;
+    }
+    #main-content { width: 600px; flex-shrink: 0; position: relative; }
+    #story-and-enlighten { width: 280px; flex-shrink: 0; }
+    .clickable { 
+      cursor: pointer; 
+      user-select: none; 
+      display: inline; 
+      -webkit-tap-highlight-color: transparent; 
+      touch-action: manipulation; 
+      transition: all 0.15s ease; 
+    }
+    .clickable:hover { text-decoration: underline; opacity: 0.8; }
+    .clickable:active { opacity: 0.7; transform: scale(0.98); }
+    .line { margin: 5px 0; }
+    .hidden { display: none !important; }
+    .disabled { opacity: 0.4; cursor: default !important; pointer-events: none; }
+    .disabled:hover { text-decoration: none !important; }
+    .home-link { position: fixed; bottom: 10px; right: 10px; font-size: 0.9em; text-decoration: none; color: inherit; }
+    .home-link:hover { text-decoration: underline; }
+    .save-links { position: fixed; bottom: 30px; right: 10px; font-size: 0.9em; text-align: right; }
+    .save-links .clickable { color: inherit; text-decoration: none; }
+    .save-links .clickable:hover { text-decoration: underline; }
+    .click-counter { 
+      position: absolute; 
+      pointer-events: none; 
+      font-size: 1.2em; 
+      font-weight: bold; 
+      opacity: 0; 
+      animation: floatUp 1s ease-out; 
+    }
+    @keyframes floatUp { 
+      0% { transform: translateY(0); opacity: 1; } 
+      100% { transform: translateY(-50px); opacity: 0; } 
+    }
+    #think-button { 
+      font-weight: bold; 
+      font-size: 1.1em;
+      transition: all 0.2s ease;
+    }
+    #think-button:hover { 
+      transform: scale(1.05);
+      text-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    #think-button:active {
+      transform: scale(0.95);
+    }
+    .value-change {
+      animation: valueFlash 0.3s ease;
+    }
+    @keyframes valueFlash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 0.7; transform: translateY(0); }
+    }
+    .story-line {
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+    }
+    .passive-active {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    #story-container { 
+      max-height: 50vh; 
+      overflow-y: auto; 
+      padding: 0;
+      margin-bottom: 20px;
+    }
+    #story-container::-webkit-scrollbar { width: 6px; }
+    #story-container::-webkit-scrollbar-track { background: transparent; }
+    #story-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+    #story-container::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+    
+    .enlighten-ready {
+      animation: enlightenPulse 3s ease-in-out infinite;
+    }
+    @keyframes enlightenPulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+    .meta-upgrade {
+      padding: 6px 0;
+      border-left: 3px solid rgba(0,0,0,0.2);
+      padding-left: 10px;
+      margin: 4px 0;
+      font-size: 0.9em;
+    }
+    .transcendent {
+      background: linear-gradient(90deg, rgba(255,215,0,0.1), rgba(138,43,226,0.1));
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .secret-upgrade {
+      background: linear-gradient(90deg, rgba(0,255,255,0.1), rgba(255,0,255,0.1));
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .galaxy-upgrade {
+      background: linear-gradient(90deg, 
+        rgba(148, 0, 211, 0.15),
+        rgba(75, 0, 130, 0.15),
+        rgba(0, 0, 255, 0.15),
+        rgba(0, 255, 255, 0.15)
+      );
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .galaxy-upgrade::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+      );
+      animation: galaxyShimmer 3s infinite linear;
+      z-index: 0;
+    }
+    @keyframes galaxyShimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(0deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(360deg); }
+    }
+    .galaxy-upgrade > * {
+      position: relative;
+      z-index: 1;
+    }
+    .milestone-hint {
+      font-size: 0.85em;
+      opacity: 0.5;
+      font-style: italic;
+      margin-top: 10px;
+    }
+    .production-breakdown {
+      font-size: 0.85em;
+      opacity: 0.6;
+      margin-top: 5px;
+      padding-left: 15px;
+    }
+    .path-logic { color: #1a2a4a !important; }
+    .path-creativity { color: #4a1a1a !important; }
+    .path-intuition { color: #2a1a4a !important; }
+    .tradeoff-tooltip {
+      font-size: 0.8em;
+      opacity: 0.7;
+      font-style: italic;
+      margin-top: 2px;
+      padding-left: 10px;
+      color: #8b0000;
+    }
+    #final-ending-container {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 2s ease;
+      pointer-events: none;
+    }
+    #final-ending-container.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .ending-text {
+      font-size: 1.5em;
+      font-style: italic;
+      margin: 30px 0;
+      line-height: 1.8;
+    }
+    .ending-button {
+      font-size: 1.2em;
+      padding: 15px 35px;
+      cursor: pointer;
+      background: rgba(100, 100, 100, 0.3);
+      border: 2px solid #888;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .ending-button:hover {
+      background: rgba(120, 120, 120, 0.5);
+      transform: scale(1.05);
+      border-color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-wrapper">
+    <div id="eternal-upgrades-column">
+      <div id="meta-upgrade-container" class="hidden"></div>
+    </div>
+
+    <div id="main-content">
+      <div class="line"><span class="clickable" id="think-button">think</span></div>
+
+      <div class="line" style="margin-top: 15px;">
+        knowledge: <span id="knowledge-value">0</span><span id="passive-indicator" style="opacity: 0; margin-left: 8px; font-size: 0.8em; color: #666;">●</span>
+      </div>
+
+      <div class="line hidden" id="insight-line">
+        insights: <span id="insight-value">0</span>
+      </div>
+
+      <div class="line hidden" id="wisdom-line">
+        wisdom: <span id="wisdom-value">0</span> <span style="font-size: 0.85em; opacity: 0.6;">(eternal)</span>
+      </div>
+
+      <div class="line" id="wisdom-counter-line" style="display: none;">
+        wisdom: <span id="wisdom-counter-value">0</span>
+      </div>
+
+      <div id="per-second-panel" class="hidden" style="margin-top: 10px; margin-bottom: 15px;">
+        <div class="line">knowledge per second: <span id="kps">0</span></div>
+        <div class="production-breakdown hidden" id="kps-breakdown"></div>
+        <div class="line">knowledge per click: <span id="kpc">1</span></div>
+        <div class="line hidden" id="ips-line">insights per second: <span id="ips">0</span></div>
+        <div class="line hidden" id="wps-line">wisdom per second: <span id="wps">0</span></div>
+        <div class="line">total thoughts: <span id="total-clicks">0</span></div>
+        <div class="line hidden" id="resonance-line">resonance: <span id="resonance-value">0</span>%</div>
+      </div>
+
+      <div class="milestone-hint" id="next-milestone"></div>
+
+      <div id="choice-container" style="margin-top: 15px;"></div>
+      <div id="upgrade-container" style="margin-top: 15px;"></div>
+      <div id="project-container" style="margin-top: 15px;"></div>
+      <div id="resource-container" class="hidden" style="margin-top: 20px;"></div>
+      <div id="quest-container" style="margin-top: 20px;"></div>
+    </div>
+
+    <div id="story-and-enlighten">
+      <div id="story-container"></div>
+      <div id="enlighten-container" class="hidden" style="padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1);"></div>
+    </div>
+  </div>
+
+  <div class="save-links">
+    <div><span class="clickable" id="save-button">save game</span></div>
+    <div><span class="clickable" id="export-button">export</span></div>
+    <div><span class="clickable" id="import-button">import</span></div>
+    <textarea id="import-field" class="hidden" style="width: 200px; height: 60px; margin-top: 5px; font-family: monospace; font-size: 11px;"></textarea>
+  </div>
+
+  <a class="home-link" href="index.html">home</a>
+
+  <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75em; opacity: 0.4; text-align: center;">
+    <div style="margin-bottom: 2px;">game version AMAIA (9.1xVA)</div>
+    <div>© laurent héroux 2025</div>
+  </div>
+
+  <div id="final-ending-container">
+    <div class="ending-text">"To know everything is to become nothing.<br>To become nothing is to know everything."</div>
+    <div class="clickable ending-button" id="final-ending-btn">embrace the void</div>
+  </div>
+
+<script>
+let state = {
+  knowledge: 0,
+  insights: 0,
+  focus: 0,
+  wisdom: 0,
+  plasticity: 0,
+  neurons: 0,
+  synapses: 0,
+  pattern_recognition: 0,
+  memory: 0,
+  creativity: 0,
+  logic: 0,
+  intuition: 0,
+  collective: 0,
+  divergence: 0,
+  convergence: 0,
+  transcendence: 0,
+  nebula_nexus: 0,
+  quantum_entanglement: 0,
+  stellar_synthesis: 0,
+  cosmic_convergence: 0,
+  void_resonator: 0,
+  dimensional_matrix: 0,
+  infinity_catalyst: 0,
+  totalClicks: 0,
+  phase: 1,
+  path: null,
+  enlightenments: 0,
+  totalEnlightenments: 0,
+  projectsCompleted: {},
+  choicesMade: {},
+  storyShown: {},
+  questsCompleted: {},
+  activeQuests: [],
+  metaUpgrades: {},
+  resonance: 0,
+  bestKnowledge: 0,
+  infinityMode: false,
+  secretsFound: 0,
+  finalEnding: false,
+  enlightenCooldown: 0
+};
+
+const META_UPGRADES = [
+  { id: 'eternal_plasticity', name: 'Eternal Plasticity', wisdomCost: 10, requiresEnlightenments: 1, effect: 'plasticity 2x more effective' },
+  { id: 'neural_memory', name: 'Neural Memory', wisdomCost: 25, requiresEnlightenments: 1, effect: 'start each cycle with 10% of previous knowledge' },
+  { id: 'thought_acceleration', name: 'Thought Acceleration', wisdomCost: 50, requiresEnlightenments: 3, effect: 'all production +20%' },
+  { id: 'deep_meditation', name: 'Deep Meditation', wisdomCost: 100, requiresEnlightenments: 5, effect: 'wisdom generation 3x' },
+  { id: 'synaptic_burst', name: 'Synaptic Burst', wisdomCost: 200, requiresEnlightenments: 7, effect: 'clicks 5x more powerful' },
+  { id: 'collective_resonance', name: 'Collective Resonance', wisdomCost: 400, requiresEnlightenments: 10, effect: 'passive generation scales with enlightenments' },
+  { id: 'timeless_insight', name: 'Timeless Insight', wisdomCost: 800, requiresEnlightenments: 15, effect: 'insights generation 10x' },
+  { id: 'infinite_recursion', name: 'Infinite Recursion', wisdomCost: 1600, requiresEnlightenments: 25, effect: 'all multipliers stack multiplicatively' },
+  { id: 'transcendent_mind', name: 'Transcendent Mind', wisdomCost: 5000, requiresEnlightenments: 50, effect: 'unlock true infinity', special: true }
+];
+
+const STORIES = [
+  { at: 5, id: 'awareness', text: 'awareness emerges from the void' },
+  { at: 25, id: 'plasticity', text: 'your mind begins to reshape itself' },
+  { at: 100, id: 'neurons', text: 'neural pathways form and strengthen' },
+  { at: 500, id: 'patterns', text: 'patterns reveal themselves in the chaos' },
+  { at: 2500, id: 'memory', text: 'memory allows you to build upon the past' },
+  { at: 12000, id: 'question', text: 'but what are you becoming?' },
+  { at: 50000, id: 'others', text: 'you sense others like you, thinking, growing' },
+  { at: 250000, id: 'collective_sense', text: 'the boundary between minds grows thin' },
+  { at: 500000, id: 'divergence_hint', text: 'two paths diverge... choose carefully' },
+  { at: 1000000, id: 'enlighten_ready', text: 'you sense the possibility of rebirth' }
+];
+
+const CHOICES = [
+  {
+    id: 'first_path', showAt: 12000, question: 'how will you grow?',
+    options: [
+      { id: 'logic', text: 'through reason and analysis', effect: () => { 
+        state.path = 'logic'; 
+        state.choicesMade['first_path'] = 'logic'; 
+        addStory('you choose the path of logic');
+        addStory('reason sharpens your mind — but at what cost?');
+        applyPathColor();
+      }},
+      { id: 'creativity', text: 'through imagination and creation', effect: () => { 
+        state.path = 'creativity'; 
+        state.choicesMade['first_path'] = 'creativity'; 
+        addStory('you choose the path of creativity');
+        addStory('imagination flows freely — structure fades');
+        applyPathColor();
+      }},
+      { id: 'intuition', text: 'through feeling and instinct', effect: () => { 
+        state.path = 'intuition'; 
+        state.choicesMade['first_path'] = 'intuition'; 
+        addStory('you choose the path of intuition');
+        addStory('instinct guides you — reason becomes distant');
+        applyPathColor();
+      }}
+    ]
+  },
+  {
+    id: 'collective_choice', showAt: 250000, requiresProject: 'network', question: 'others reach out. do you...',
+    options: [
+      { id: 'join', text: 'merge with the collective', effect: () => { 
+        state.choicesMade['collective_choice'] = 'join'; 
+        state.phase = 2; 
+        addStory('you dissolve into the many');
+        addStory('individual thought becomes collective wisdom'); 
+        addStory('but something is lost in the merger');
+      }},
+      { id: 'remain', text: 'remain separate', effect: () => { 
+        state.choicesMade['collective_choice'] = 'remain'; 
+        state.phase = 2; 
+        addStory('you hold onto yourself');
+        addStory('isolation preserves identity');
+        addStory('but limits understanding');
+      }}
+    ]
+  },
+  {
+    id: 'divergence_choice', showAt: 500000, requiresProject: 'wisdom_proj', question: 'the path splits. embrace...',
+    options: [
+      { id: 'divergence', text: 'infinite divergence', effect: () => {
+        state.choicesMade['divergence_choice'] = 'divergence';
+        addStory('you scatter into infinite possibilities');
+        addStory('each thought spawns countless variations');
+        state.secretsFound++;
+      }},
+      { id: 'convergence', text: 'singular convergence', effect: () => {
+        state.choicesMade['divergence_choice'] = 'convergence';
+        addStory('you collapse into pure focus');
+        addStory('all paths merge into one truth');
+        state.secretsFound++;
+      }}
+    ]
+  }
+];
+
+const QUESTS = [
+  { id: 'first_hundred', trigger: 100, text: 'a hundred thoughts... infinity awaits', reward: 200, accept: () => { state.knowledge += 200; state.questsCompleted['first_hundred'] = true; addStory('the first step toward forever'); } },
+  { id: 'rapid_fire', trigger: 500, requirement: () => state.totalClicks >= 50, text: 'velocity transcends limitation', reward: 1000, accept: () => { state.knowledge += 1000; state.questsCompleted['rapid_fire'] = true; addStory('speed becomes essence'); } },
+  { id: 'passive_master', trigger: 3000, requirement: () => (state.plasticity + state.synapses + state.neurons) >= 10, text: 'automation approaches perfection', reward: 5000, accept: () => { state.knowledge += 5000; state.questsCompleted['passive_master'] = true; addStory('thought flows without effort'); } },
+  { id: 'meditation_seeker', trigger: 40000, requirement: () => state.projectsCompleted['focus_amplifier'], text: 'clarity reveals deeper truths', reward: 20000, accept: () => { state.knowledge += 20000; state.questsCompleted['meditation_seeker'] = true; addStory('focus transcends dimension'); } },
+  { id: 'first_enlightenment', trigger: 1000000, requirement: () => state.enlightenments === 0, text: 'the cycle can begin anew', reward: 50000, accept: () => { state.knowledge += 50000; state.questsCompleted['first_enlightenment'] = true; addStory('rebirth is not an ending'); } },
+  { id: 'resonance_master', trigger: 500000, requirement: () => state.resonance >= 50, text: 'time itself bends to your will', reward: 100000, accept: () => { state.knowledge += 100000; state.questsCompleted['resonance_master'] = true; addStory('duration becomes power'); } }
+];
+
+const UPGRADE_DESCRIPTIONS = {
+  'plasticity': 'neural pathways shimmer with infinite potential',
+  'neurons': 'synaptic connections branch like fractal lightning',
+  'synapses': 'thoughts echo through eternity',
+  'pattern_recognition': 'the hidden architecture of infinity emerges',
+  'memory': 'all moments exist simultaneously',
+  'logic': 'pure reason cuts through all illusion',
+  'creativity': 'impossible ideas manifest as reality',
+  'intuition': 'the universe whispers its deepest secrets',
+  'collective': 'one mind, infinite perspectives',
+  'divergence': 'you split into countless parallel thoughts',
+  'convergence': 'all paths collapse into singular truth',
+  'transcendence': 'you exist beyond all limitation',
+  'nebula_nexus': 'a galactic core of pure thought energy forms',
+  'quantum_entanglement': 'thoughts become entangled across dimensions',
+  'stellar_synthesis': 'stars are born from concentrated cognition',
+  'cosmic_convergence': 'the universe itself begins to think through you',
+  'void_resonator': 'the absence of thought becomes infinite presence',
+  'dimensional_matrix': 'reality bends to your will across infinite planes',
+  'infinity_catalyst': 'you approach the final threshold of existence'
+};
+
+const UPGRADES = [
+  { id: 'plasticity', name: 'plasticity', baseCost: 5, costMultiplier: 1.15, effect: () => { state.plasticity += 1; }, showAt: 0, kps: 0.1 },
+  { id: 'neurons', name: 'neuron', baseCost: 25, costMultiplier: 1.12, effect: () => { state.neurons += 1; }, showAt: 10, clickBonus: 0.5 },
+  { id: 'synapses', name: 'synapse factory', baseCost: 250, costMultiplier: 1.14, effect: () => { state.synapses += 1; }, showAt: 100, kps: 2 },
+  { id: 'pattern_recognition', name: 'pattern recognition', baseCost: 1500, costMultiplier: 1.16, effect: () => { state.pattern_recognition += 1; }, showAt: 800, requiresProject: 'patterns', clickBonus: 5 },
+  { id: 'memory', name: 'memory bank', baseCost: 8000, costMultiplier: 1.13, effect: () => { state.memory += 1; }, showAt: 5000, requiresProject: 'memory_proj', kps: 25 },
+  { id: 'logic', name: 'logic processor', baseCost: 75000, costMultiplier: 1.17, effect: () => { state.logic += 1; }, showAt: 50000, requiresPath: 'logic', kps: 100, tradeoff: 'creativity', tradeoffExplanation: 'each logic processor reduces creativity engine production by 30%' },
+  { id: 'creativity', name: 'creative engine', baseCost: 75000, costMultiplier: 1.18, effect: () => { state.creativity += 1; }, showAt: 50000, requiresPath: 'creativity', kps: 80, insightGen: true, tradeoff: 'logic', tradeoffExplanation: 'each creative engine reduces logic processor production by 20%' },
+  { id: 'intuition', name: 'intuitive core', baseCost: 75000, costMultiplier: 1.16, effect: () => { state.intuition += 1; }, showAt: 50000, requiresPath: 'intuition', kps: 90, focusGen: true, tradeoff: 'pattern_recognition', tradeoffExplanation: 'each intuitive core reduces pattern recognition click bonus by 10%' },
+  { id: 'collective', name: 'collective node', baseCost: 750000, costMultiplier: 1.20, effect: () => { state.collective += 1; }, showAt: 400000, requiresProject: 'network', kps: 500 },
+  { id: 'divergence', name: 'divergence engine', baseCost: 1500000, costMultiplier: 1.22, effect: () => { state.divergence += 1; }, showAt: 600000, requiresChoice: 'divergence_choice', requiresChoiceValue: 'divergence', kps: 1000, special: true },
+  { id: 'convergence', name: 'convergence core', baseCost: 1500000, costMultiplier: 1.22, effect: () => { state.convergence += 1; }, showAt: 600000, requiresChoice: 'divergence_choice', requiresChoiceValue: 'convergence', clickBonus: 100, special: true },
+  { id: 'transcendence', name: 'transcendence node', baseCost: 5000000, costMultiplier: 1.25, effect: () => { state.transcendence += 1; }, showAt: 2000000, requiresMeta: 'transcendent_mind', kps: 5000, special: true },
+  { id: 'nebula_nexus', name: 'nebula nexus', baseCost: 2000000, costMultiplier: 1.28, effect: () => { state.nebula_nexus += 1; }, showAt: 1000000, requiresProject: 'wisdom_proj', kps: 2000, special: true, galaxy: true },
+  { id: 'quantum_entanglement', name: 'quantum entanglement', baseCost: 5000000, costMultiplier: 1.30, effect: () => { state.quantum_entanglement += 1; }, showAt: 3000000, requiresMeta: 'infinite_recursion', kps: 5000, clickBonus: 500, special: true, galaxy: true },
+  { id: 'stellar_synthesis', name: 'stellar synthesis', baseCost: 10000000, costMultiplier: 1.32, effect: () => { state.stellar_synthesis += 1; }, showAt: 5000000, requiresProject: 'secret_convergence', kps: 10000, special: true, galaxy: true },
+  { id: 'cosmic_convergence', name: 'cosmic convergence', baseCost: 25000000, costMultiplier: 1.35, effect: () => { state.cosmic_convergence += 1; }, showAt: 10000000, requiresMeta: 'transcendent_mind', kps: 25000, special: true, galaxy: true },
+  { id: 'void_resonator', name: 'void resonator', baseCost: 50000000, costMultiplier: 1.38, effect: () => { state.void_resonator += 1; }, showAt: 30000000, requiresMeta: 'transcendent_mind', kps: 50000, special: true, galaxy: true },
+  { id: 'dimensional_matrix', name: 'dimensional matrix', baseCost: 100000000, costMultiplier: 1.40, effect: () => { state.dimensional_matrix += 1; }, showAt: 60000000, requiresProject: 'secret_convergence', kps: 100000, clickBonus: 10000, special: true, galaxy: true },
+  { id: 'infinity_catalyst', name: 'infinity catalyst', baseCost: 500000000, costMultiplier: 1.45, effect: () => { state.infinity_catalyst += 1; }, showAt: 200000000, requiresMeta: 'transcendent_mind', kps: 500000, special: true, galaxy: true }
+];
+
+const PROJECTS = [
+  { id: 'patterns', name: 'PATTERN ANALYSIS', cost: 400, showAt: 200, effect: () => { addStory('patterns within patterns within infinity'); }, desc: 'see the hidden structures' },
+  { id: 'memory_proj', name: 'MEMORY FORMATION', cost: 2500, showAt: 2000, effect: () => { addStory('the past crystallizes into wisdom'); }, desc: 'time becomes a tool' },
+  { id: 'insights', name: 'INSIGHT GENERATION', cost: 10000, showAt: 6000, effect: () => { document.getElementById('insight-line').classList.remove('hidden'); document.getElementById('ips-line').classList.remove('hidden'); addStory('beneath knowledge lies infinite insight'); }, desc: 'discover deeper truths' },
+  { id: 'focus_amplifier', name: 'FOCUS AMPLIFIER', cost: 20000, showAt: 12000, requiresProject: 'insights', effect: () => { addStory('clarity multiplies all things'); }, desc: 'sharpen the eternal mind' },
+  { id: 'network', name: 'NEURAL NETWORKING', cost: 150000, showAt: 80000, requiresChoice: 'first_path', effect: () => { addStory('you are no longer alone in infinity'); }, desc: 'connect across dimensions' },
+  { id: 'wisdom_proj', name: 'WISDOM SYNTHESIS', cost: 500000, insightCost: 500, showAt: 300000, requiresProject: 'network', effect: () => { document.getElementById('wisdom-line').classList.remove('hidden'); document.getElementById('wps-line').classList.remove('hidden'); addStory('wisdom transcends all cycles'); }, desc: 'achieve true understanding' },
+  { id: 'resonance', name: 'TEMPORAL RESONANCE', cost: 1000000, showAt: 600000, requiresProject: 'wisdom_proj', effect: () => { document.getElementById('resonance-line').classList.remove('hidden'); addStory('time itself amplifies your power'); }, desc: 'duration becomes strength' },
+  { id: 'secret_convergence', name: '??? SINGULARITY ???', cost: 10000000, insightCost: 10000, showAt: 5000000, requiresChoice: 'divergence_choice', effect: () => { addStory('━━━━━ REALITY FRACTURES ━━━━━'); addStory('you have found the hidden path'); state.secretsFound++; }, desc: 'the final secret', secret: true }
+];
+
+function applyPathColor() {
+  const body = document.body;
+  body.classList.remove('path-logic', 'path-creativity', 'path-intuition');
+  
+  if (state.path === 'logic') {
+    body.classList.add('path-logic');
+  } else if (state.path === 'creativity') {
+    body.classList.add('path-creativity');
+  } else if (state.path === 'intuition') {
+    body.classList.add('path-intuition');
+  }
+}
+
+function calculateKPS() {
+  let passive = 0;
+  let plasticityMult = state.metaUpgrades['eternal_plasticity'] ? 2 : 1;
+  passive += state.plasticity * 0.1 * plasticityMult;
+  passive += state.synapses * 2;
+  passive += state.memory * 25;
+  
+  let logicProd = state.logic * 100;
+  if (state.creativity > 0) logicProd *= 0.8;
+  passive += logicProd;
+  
+  let creativityProd = state.creativity * 80;
+  if (state.logic > 0) creativityProd *= 0.7;
+  passive += creativityProd;
+  
+  passive += state.intuition * 90;
+  passive += state.collective * 500;
+  passive += state.divergence * 1000;
+  
+  if (state.path === 'logic') passive *= 1.5;
+  if (state.path === 'creativity') passive *= 1.2;
+  if (state.path === 'intuition') passive *= 1.3;
+  
+  passive += state.nebula_nexus * 2000;
+  passive += state.quantum_entanglement * 5000;
+  passive += state.stellar_synthesis * 10000;
+  passive += state.cosmic_convergence * 25000;
+  passive += state.void_resonator * 50000;
+  passive += state.dimensional_matrix * 100000;
+  passive += state.infinity_catalyst * 500000;
+  
+  if (state.phase >= 2) passive *= 2;
+  if (state.totalEnlightenments > 0) passive *= Math.pow(1.5, state.totalEnlightenments);
+  if (state.metaUpgrades['thought_acceleration']) passive *= 1.2;
+  if (state.metaUpgrades['collective_resonance']) passive *= (1 + state.totalEnlightenments * 0.1);
+  if (state.metaUpgrades['infinite_recursion']) passive *= 1.5;
+  if (state.resonance > 0) passive *= (1 + state.resonance / 100);
+  
+  passive += state.transcendence * 5000;
+  
+  return passive;
+}
+
+function calculateClickPower() {
+  let gain = 1;
+  
+  if (typeof state.neurons === 'number' && !isNaN(state.neurons)) {
+    gain += state.neurons * 0.5;
+  }
+  
+  if (typeof state.pattern_recognition === 'number' && !isNaN(state.pattern_recognition)) {
+    let patternBonus = state.pattern_recognition * 5;
+    if (state.intuition > 0) patternBonus *= 0.9;
+    gain += patternBonus;
+  }
+  
+  if (typeof state.convergence === 'number' && !isNaN(state.convergence)) {
+    gain += state.convergence * 100;
+  }
+  
+  if (typeof state.quantum_entanglement === 'number' && !isNaN(state.quantum_entanglement)) {
+    gain += state.quantum_entanglement * 500;
+  }
+  
+  if (typeof state.dimensional_matrix === 'number' && !isNaN(state.dimensional_matrix)) {
+    gain += state.dimensional_matrix * 10000;
+  }
+  
+  if (state.path === 'logic') gain *= 1.8;
+  else if (state.path === 'intuition') gain *= 1.5;
+  else if (state.path === 'creativity') gain *= 1.3;
+  
+  if (state.phase >= 2) gain *= 2;
+  
+  if (state.totalEnlightenments > 0) gain *= Math.pow(1.5, state.totalEnlightenments);
+  if (typeof state.focus === 'number' && !isNaN(state.focus) && state.focus > 0) {
+    gain *= (1 + state.focus * 0.001);
+  }
+  if (state.metaUpgrades['synaptic_burst']) gain *= 5;
+  if (state.metaUpgrades['infinite_recursion']) gain *= 2;
+  
+  return Math.max(1, gain);
+}
+
+function getKPSBreakdown() {
+  const breakdown = [];
+  let plasticityMult = state.metaUpgrades['eternal_plasticity'] ? 2 : 1;
+  if (state.plasticity > 0) breakdown.push('plasticity: ' + formatNumber(state.plasticity * 0.1 * plasticityMult));
+  if (state.synapses > 0) breakdown.push('synapses: ' + formatNumber(state.synapses * 2));
+  if (state.memory > 0) breakdown.push('memory: ' + formatNumber(state.memory * 25));
+  if (state.logic > 0) breakdown.push('logic: ' + formatNumber(state.logic * 100));
+  if (state.creativity > 0) breakdown.push('creativity: ' + formatNumber(state.creativity * 80));
+  if (state.intuition > 0) breakdown.push('intuition: ' + formatNumber(state.intuition * 90));
+  if (state.collective > 0) breakdown.push('collective: ' + formatNumber(state.collective * 500));
+  if (state.divergence > 0) breakdown.push('divergence: ' + formatNumber(state.divergence * 1000));
+  if (state.transcendence > 0) breakdown.push('transcendence: ' + formatNumber(state.transcendence * 5000));
+  if (state.nebula_nexus > 0) breakdown.push('nebula nexus: ' + formatNumber(state.nebula_nexus * 2000));
+  if (state.quantum_entanglement > 0) breakdown.push('quantum: ' + formatNumber(state.quantum_entanglement * 5000));
+  if (state.stellar_synthesis > 0) breakdown.push('stellar: ' + formatNumber(state.stellar_synthesis * 10000));
+  if (state.cosmic_convergence > 0) breakdown.push('cosmic: ' + formatNumber(state.cosmic_convergence * 25000));
+  if (state.void_resonator > 0) breakdown.push('void: ' + formatNumber(state.void_resonator * 50000));
+  if (state.dimensional_matrix > 0) breakdown.push('dimensional: ' + formatNumber(state.dimensional_matrix * 100000));
+  if (state.infinity_catalyst > 0) breakdown.push('infinity: ' + formatNumber(state.infinity_catalyst * 500000));
+  return breakdown;
+}
+
+function getNextMilestone() {
+  const milestones = [
+    { at: 5, text: 'awareness awakens' },
+    { at: 25, text: 'plasticity unlocks' },
+    { at: 100, text: 'neural paths form' },
+    { at: 500, text: 'patterns emerge' },
+    { at: 2500, text: 'memory crystallizes' },
+    { at: 12000, text: 'first choice appears' },
+    { at: 50000, text: 'others are sensed' },
+    { at: 250000, text: 'collective beckons' },
+    { at: 1000000, text: 'enlightenment possible' }
+  ];
+  
+  for (let m of milestones) {
+    if (state.knowledge < m.at) {
+      return 'next: ' + m.text + ' (' + formatNumber(m.at - state.knowledge) + ' knowledge)';
+    }
+  }
+  return 'all milestones reached — seek infinity';
+}
+
+function updateResonance() {
+  if (state.projectsCompleted['resonance']) {
+    const resonanceGain = 0.01;
+    state.resonance = Math.min(200, state.resonance + resonanceGain);
+  }
+}
+
+function checkFinalEnding() {
+  if (state.finalEnding) return;
+  
+  const hasAllGalaxy = state.infinity_catalyst >= 3 && state.dimensional_matrix >= 5 && state.void_resonator >= 5;
+  const highEnlightenments = state.totalEnlightenments >= 100;
+  const highWisdom = state.wisdom >= 10000;
+  
+  if (hasAllGalaxy && highEnlightenments && highWisdom) {
+    const endingContainer = document.getElementById('final-ending-container');
+    endingContainer.classList.add('visible');
+  }
+}
+
+document.getElementById('final-ending-btn').onclick = () => {
+  state.finalEnding = true;
+  document.body.classList.add('ending-darkness');
+  const endingContainer = document.getElementById('final-ending-container');
+  endingContainer.style.opacity = '0';
+  setTimeout(() => {
+    endingContainer.innerHTML = '<div class="ending-text" style="font-size: 2em;">the void embraces you</div>';
+    endingContainer.style.opacity = '1';
+  }, 2000);
+  setTimeout(() => {
+    endingContainer.style.opacity = '0';
+  }, 5000);
+};
+
+function saveGame() {
+  const saveData = JSON.stringify(state);
+  localStorage.setItem('thinkGameSave', saveData);
+  addStory('game saved');
+}
+
+function loadGame() {
+  const saveData = localStorage.getItem('thinkGameSave');
+  if (saveData) {
+    try {
+      state = JSON.parse(saveData);
+      addStory('game loaded');
+      render();
+      return true;
+    } catch (e) {
+      addStory('save file corrupted');
+      return false;
+    }
+  }
+  return false;
+}
+
+function exportSave() {
+  const saveData = JSON.stringify(state);
+  const encoded = btoa(saveData);
+  const field = document.getElementById('import-field');
+  field.classList.remove('hidden');
+  field.value = encoded;
+  field.select();
+  addStory('save exported — copy the text');
+}
+
+function importSave() {
+  const field = document.getElementById('import-field');
+  field.classList.remove('hidden');
+  field.value = '';
+  field.placeholder = 'Paste your save data here and click outside';
+  field.focus();
+  
+  field.onblur = () => {
+    try {
+      const encoded = field.value.trim();
+      if (encoded) {
+        const saveData = atob(encoded);
+        state = JSON.parse(saveData);
+        addStory('save imported successfully');
+        field.classList.add('hidden');
+        render();
+        applyPathColor();
+      }
+    } catch (e) {
+      addStory('import failed — invalid save data');
+    }
+  };
+}
+
+function init() {
+  const loaded = loadGame();
+  
+  if (!loaded) {
+    // Ensure state has all default values
+    state.knowledge = 0;
+    state.insights = 0;
+    state.focus = 0;
+    state.wisdom = 0;
+    state.plasticity = 0;
+    state.neurons = 0;
+    state.synapses = 0;
+    state.pattern_recognition = 0;
+    state.memory = 0;
+    state.creativity = 0;
+    state.logic = 0;
+    state.intuition = 0;
+    state.collective = 0;
+    state.divergence = 0;
+    state.convergence = 0;
+    state.transcendence = 0;
+    state.totalClicks = 0;
+    state.phase = 1;
+    state.enlightenments = 0;
+    state.totalEnlightenments = 0;
+    state.resonance = 0;
+    state.bestKnowledge = 0;
+    state.enlightenCooldown = 0;
+    
+    addStory('you are. you think. therefore...');
+    setTimeout(() => {
+      if (state.knowledge < 10) addStory('begin by thinking');
+    }, 1000);
+  } else {
+    applyPathColor();
+    // Show the per-second panel if player has clicked before
+    if (state.totalClicks > 0) {
+      document.getElementById('per-second-panel').classList.remove('hidden');
+    }
+  }
+  
+  document.getElementById('save-button').onclick = saveGame;
+  document.getElementById('export-button').onclick = exportSave;
+  document.getElementById('import-button').onclick = importSave;
+  
+  document.getElementById('think-button').onclick = (e) => {
+    let gain = calculateClickPower();
+    state.knowledge = (state.knowledge || 0) + gain;
+    state.totalClicks++;
+    const rect = e.target.getBoundingClientRect();
+    showClickCounter(gain, rect.left + rect.width / 2, rect.top);
+    if (state.totalClicks === 1) {
+      document.getElementById('per-second-panel').classList.remove('hidden');
+    }
+    updateDisplay();
+    checkStories();
+    checkQuests();
+  };
+  
+  document.getElementById('think-button').onmousedown = (e) => {
+    if (e.button === 0) {
+      e.preventDefault();
+    }
+  };
+  
+  setInterval(saveGame, 30000);
+  
+  render();
+  setInterval(gameLoop, 100);
+  setInterval(updateResonance, 1000);
+  setInterval(checkFinalEnding, 5000);
+}
+
+let oKeyPresses = [];
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'o' || e.key === 'O') {
+    const now = Date.now();
+    oKeyPresses.push(now);
+    oKeyPresses = oKeyPresses.filter(time => now - time < 5000);
+    
+    if (oKeyPresses.length >= 5) {
+      state.knowledge += 100000;
+      state.insights += 10;
+      addStory('━━━ developer cheat activated ━━━');
+      oKeyPresses = [];
+      updateDisplay();
+    }
+  }
+});
+
+let lastKnowledge = 0;
+function gameLoop() {
+  if (state.enlightenCooldown > 0) {
+    state.enlightenCooldown -= 0.1;
+  }
+  
+  let passive = calculateKPS();
+  
+  const indicator = document.getElementById('passive-indicator');
+  if (passive > 0) {
+    indicator.style.opacity = '1';
+    indicator.classList.add('passive-active');
+    state.knowledge += passive / 10;
+    if (Math.floor(state.knowledge) > Math.floor(lastKnowledge)) {
+      const knowledgeEl = document.getElementById('knowledge-value');
+      knowledgeEl.classList.add('value-change');
+      setTimeout(() => knowledgeEl.classList.remove('value-change'), 300);
+    }
+  } else {
+    indicator.style.opacity = '0';
+    indicator.classList.remove('passive-active');
+  }
+  lastKnowledge = state.knowledge;
+  
+  if (state.knowledge > state.bestKnowledge) {
+    state.bestKnowledge = state.knowledge;
+  }
+  
+  if (state.creativity > 0) {
+    let insightRate = state.creativity * (state.path === 'creativity' ? 0.05 : 0.01);
+    if (state.metaUpgrades['timeless_insight']) insightRate *= 10;
+    state.insights += insightRate / 10;
+  }
+  
+  if (state.intuition > 0) {
+    const focusRate = state.intuition * (state.path === 'intuition' ? 0.05 : 0.01);
+    state.focus += focusRate / 10;
+  }
+  
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+    let wisdomRate = state.insights * 0.0001;
+    if (state.metaUpgrades['deep_meditation']) wisdomRate *= 3;
+    state.wisdom += wisdomRate / 10;
+  }
+  
+  checkStories();
+  updateDisplay();
+  checkQuests();
+}
+
+function showClickCounter(amount, x, y) {
+  const counter = document.createElement('div');
+  counter.className = 'click-counter';
+  counter.textContent = '+' + formatNumber(Math.floor(amount));
+  counter.style.left = x + 'px';
+  counter.style.top = y + 'px';
+  document.body.appendChild(counter);
+  setTimeout(() => counter.remove(), 1000);
+}
+
+function addStory(text) {
+  const container = document.getElementById('story-container');
+  const line = document.createElement('div');
+  line.className = 'line story-line';
+  line.style.fontStyle = 'italic';
+  line.style.opacity = '0.7';
+  line.textContent = text;
+  container.insertBefore(line, container.firstChild);
+  while (container.children.length > 20) container.removeChild(container.lastChild);
+}
+
+function checkStories() {
+  STORIES.forEach(story => {
+    if (!state.storyShown[story.id] && state.knowledge >= story.at) {
+      state.storyShown[story.id] = true;
+      addStory(story.text);
+    }
+  });
+}
+
+function checkQuests() {
+  QUESTS.forEach(quest => {
+    if (state.questsCompleted[quest.id]) return;
+    if (state.activeQuests.includes(quest.id)) return;
+    if (state.knowledge >= quest.trigger) {
+      if (!quest.requirement || quest.requirement()) {
+        state.activeQuests.push(quest.id);
+        updateQuestDisplay();
+      }
+    }
+  });
+}
+
+function updateQuestDisplay() {
+  const container = document.getElementById('quest-container');
+  container.innerHTML = '';
+  state.activeQuests.forEach(questId => {
+    const quest = QUESTS.find(q => q.id === questId);
+    if (!quest || state.questsCompleted[questId]) return;
+    const questLine = document.createElement('div');
+    questLine.className = 'line';
+    questLine.style.fontStyle = 'italic';
+    questLine.style.opacity = '0.85';
+    questLine.style.padding = '8px 0';
+    const questText = document.createElement('span');
+    questText.textContent = quest.text + ' ';
+    const acceptLink = document.createElement('span');
+    acceptLink.className = 'clickable';
+    acceptLink.style.fontWeight = 'bold';
+    acceptLink.textContent = '[accept: +' + formatNumber(quest.reward) + ']';
+    acceptLink.onclick = () => {
+      quest.accept();
+      state.activeQuests = state.activeQuests.filter(id => id !== questId);
+      updateQuestDisplay();
+      updateDisplay();
+    };
+    questLine.appendChild(questText);
+    questLine.appendChild(acceptLink);
+    container.appendChild(questLine);
+  });
+}
+
+function updateEnlightenmentDisplay() {
+  const container = document.getElementById('enlighten-container');
+  
+  // Calculate required knowledge for next enlightenment based on completed cycles
+  const getRequiredKnowledge = () => {
+    const base = 1000000;
+    const multiplier = Math.pow(2.5, state.totalEnlightenments);
+    return Math.floor(base * multiplier);
+  };
+  
+  const requiredKnowledge = getRequiredKnowledge();
+  const hasEnoughKnowledge = state.knowledge >= requiredKnowledge;
+  
+  // Show if player has reached threshold OR has already enlightened at least once
+  if (hasEnoughKnowledge || state.totalEnlightenments > 0) {
+    container.classList.remove('hidden');
+    container.innerHTML = '';
+    
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.style.padding = '12px 0';
+    
+    const wisdomGain = calculateWisdomGain();
+    
+    const text = document.createElement('span');
+    text.textContent = 'enlighten — ';
+    text.style.fontWeight = 'bold';
+    
+    line.appendChild(text);
+    
+    const link = document.createElement('span');
+    const canEnlighten = state.enlightenCooldown <= 0 && hasEnoughKnowledge;
+    
+    if (canEnlighten) {
+      link.className = 'clickable enlighten-ready';
+      link.textContent = 'restart cycle (+' + formatNumber(wisdomGain) + ' wisdom)';
+    } else if (!hasEnoughKnowledge) {
+      link.className = 'clickable disabled';
+      const remaining = requiredKnowledge - state.knowledge;
+      link.textContent = 'need ' + formatNumber(remaining) + ' more knowledge';
+    } else if (state.enlightenCooldown > 0) {
+      link.className = 'clickable disabled';
+      link.textContent = 'cooling down...';
+    }
+    
+    link.onclick = () => {
+      if (state.knowledge >= requiredKnowledge && state.enlightenCooldown <= 0) {
+        enlighten();
+      }
+    };
+    
+    line.appendChild(link);
+    container.appendChild(line);
+    
+    const info = document.createElement('div');
+    info.style.fontSize = '0.85em';
+    info.style.opacity = '0.7';
+    info.style.marginTop = '5px';
+    info.textContent = 'cycles completed: ' + state.totalEnlightenments;
+    container.appendChild(info);
+    
+    if (state.totalEnlightenments > 0 && !hasEnoughKnowledge) {
+      const nextReq = document.createElement('div');
+      nextReq.style.fontSize = '0.85em';
+      nextReq.style.opacity = '0.6';
+      nextReq.style.fontStyle = 'italic';
+      nextReq.style.marginTop = '2px';
+      nextReq.textContent = 'next cycle at: ' + formatNumber(requiredKnowledge) + ' knowledge';
+      container.appendChild(nextReq);
+    }
+  } else {
+    container.classList.add('hidden');
+  }
+}
+
+function calculateWisdomGain() {
+  // Give wisdom equal to the cost of the next meta upgrade the player can afford
+  const availableUpgrades = META_UPGRADES.filter(u => 
+    state.totalEnlightenments >= u.requiresEnlightenments && !state.metaUpgrades[u.id]
+  );
+  
+  if (availableUpgrades.length > 0) {
+    // Return the cost of the cheapest available upgrade
+    const cheapest = availableUpgrades.reduce((min, u) => u.wisdomCost < min ? u.wisdomCost : min, Infinity);
+    return cheapest;
+  }
+  
+  // If no upgrades available, give a base amount
+  let gain = Math.floor(Math.sqrt(state.knowledge) / 10);
+  if (state.path === 'logic') gain = Math.floor(gain * 1.5);
+  if (state.path === 'creativity') gain = Math.floor(gain * 1.3);
+  if (state.path === 'intuition') gain = Math.floor(gain * 1.7);
+  if (state.choicesMade['collective_choice'] === 'join') gain = Math.floor(gain * 1.8);
+  if (state.choicesMade['divergence_choice'] === 'divergence') gain = Math.floor(gain * 2);
+  if (state.choicesMade['divergence_choice'] === 'convergence') gain = Math.floor(gain * 2.5);
+  return Math.max(1, gain);
+}
+
+function enlighten() {
+  if (state.enlightenCooldown > 0) return;
+  
+  // Calculate required knowledge for this enlightenment
+  const base = 1000000;
+  const multiplier = Math.pow(2.5, state.totalEnlightenments);
+  const requiredKnowledge = Math.floor(base * multiplier);
+  
+  // Check if player has enough knowledge
+  if (state.knowledge < requiredKnowledge) return;
+  
+  const wisdomGain = calculateWisdomGain();
+  const preservedWisdom = state.wisdom + wisdomGain;
+  const preservedMetaUpgrades = {...state.metaUpgrades};
+  const preservedTotalEnlightenments = state.totalEnlightenments + 1;
+  const preservedSecretsFound = state.secretsFound;
+  const preservedPath = state.path;
+  const preservedFinalEnding = state.finalEnding;
+  
+  const startKnowledge = state.metaUpgrades['neural_memory'] ? Math.floor(state.bestKnowledge * 0.1) : 0;
+  
+  state = {
+    knowledge: startKnowledge,
+    insights: 0,
+    focus: 0,
+    wisdom: preservedWisdom,
+    plasticity: 0,
+    neurons: 0,
+    synapses: 0,
+    pattern_recognition: 0,
+    memory: 0,
+    creativity: 0,
+    logic: 0,
+    intuition: 0,
+    collective: 0,
+    divergence: 0,
+    convergence: 0,
+    transcendence: 0,
+    nebula_nexus: 0,
+    quantum_entanglement: 0,
+    stellar_synthesis: 0,
+    cosmic_convergence: 0,
+    void_resonator: 0,
+    dimensional_matrix: 0,
+    infinity_catalyst: 0,
+    totalClicks: 0,
+    phase: 1,
+    path: preservedPath,
+    enlightenments: state.enlightenments + 1,
+    totalEnlightenments: preservedTotalEnlightenments,
+    projectsCompleted: {},
+    choicesMade: {},
+    storyShown: {},
+    questsCompleted: {},
+    activeQuests: [],
+    metaUpgrades: preservedMetaUpgrades,
+    resonance: 0,
+    bestKnowledge: 0,
+    infinityMode: false,
+    secretsFound: preservedSecretsFound,
+    finalEnding: preservedFinalEnding,
+    enlightenCooldown: 2
+  };
+  
+  addStory('━━━━━━━━━━━━━━━━━━━━━━');
+  addStory('cycle ' + preservedTotalEnlightenments + ' begins');
+  addStory('you carry the wisdom of infinity');
+  if (startKnowledge > 0) addStory('neural echoes: +' + formatNumber(startKnowledge) + ' knowledge');
+  
+  // Show next enlightenment requirement
+  const nextBase = 1000000;
+  const nextMultiplier = Math.pow(2.5, preservedTotalEnlightenments);
+  const nextRequired = Math.floor(nextBase * nextMultiplier);
+  addStory('next enlightenment at: ' + formatNumber(nextRequired) + ' knowledge');
+  
+  addStory('━━━━━━━━━━━━━━━━━━━━━━');
+  
+  applyPathColor();
+  updateDisplay();
+}
+
+function updateMetaUpgrades() {
+  const container = document.getElementById('meta-upgrade-container');
+  
+  const availableUpgrades = META_UPGRADES.filter(u => 
+    state.totalEnlightenments >= u.requiresEnlightenments && !state.metaUpgrades[u.id]
+  );
+  
+  if (availableUpgrades.length > 0 || Object.keys(state.metaUpgrades).length > 0) {
+    container.classList.remove('hidden');
+    container.innerHTML = '<div class="line" style="font-weight: bold; margin-bottom: 10px; font-size: 0.95em;">eternal upgrades</div>';
+    
+    META_UPGRADES.forEach(upgrade => {
+      if (state.metaUpgrades[upgrade.id]) {
+        const line = document.createElement('div');
+        line.className = 'meta-upgrade transcendent';
+        line.style.opacity = '0.6';
+        line.textContent = '✓ ' + upgrade.name;
+        const desc = document.createElement('div');
+        desc.style.fontSize = '0.85em';
+        desc.style.opacity = '0.7';
+        desc.style.marginTop = '2px';
+        desc.textContent = upgrade.effect;
+        line.appendChild(desc);
+        container.appendChild(line);
+      }
+    });
+    
+    availableUpgrades.forEach(upgrade => {
+      const line = document.createElement('div');
+      line.className = 'meta-upgrade';
+      const canAfford = state.wisdom >= upgrade.wisdomCost;
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = upgrade.name;
+      link.onclick = () => {
+        if (state.wisdom >= upgrade.wisdomCost) {
+          state.wisdom -= upgrade.wisdomCost;
+          state.metaUpgrades[upgrade.id] = true;
+          addStory('eternal: ' + upgrade.name + ' acquired');
+          
+          if (upgrade.special && upgrade.id === 'transcendent_mind') {
+            addStory('━━━━━ THE VEIL LIFTS ━━━━━');
+            addStory('transcendence nodes become available');
+            addStory('you approach the final threshold');
+          }
+          
+          updateDisplay();
+        }
+      };
+      const info = document.createElement('div');
+      info.style.fontSize = '0.85em';
+      info.style.opacity = '0.7';
+      info.style.marginTop = '2px';
+      info.textContent = formatNumber(upgrade.wisdomCost) + ' wisdom — ' + upgrade.effect;
+      line.appendChild(link);
+      line.appendChild(info);
+      container.appendChild(line);
+    });
+  } else {
+    container.classList.add('hidden');
+  }
+}
+
+function updateChoices() {
+  const container = document.getElementById('choice-container');
+  container.innerHTML = '';
+  CHOICES.forEach(choice => {
+    if (state.choicesMade[choice.id]) return;
+    const canShow = state.knowledge >= choice.showAt &&
+      (!choice.requiresProject || state.projectsCompleted[choice.requiresProject]) &&
+      (!choice.requiresChoice || state.choicesMade[choice.requiresChoice]);
+    if (canShow) {
+      const questionLine = document.createElement('div');
+      questionLine.className = 'line';
+      questionLine.style.fontWeight = 'bold';
+      questionLine.style.fontSize = '1.05em';
+      questionLine.style.marginTop = '10px';
+      questionLine.style.marginBottom = '8px';
+      questionLine.textContent = choice.question;
+      container.appendChild(questionLine);
+      choice.options.forEach(option => {
+        const choiceLine = document.createElement('div');
+        choiceLine.className = 'line';
+        choiceLine.style.marginLeft = '20px';
+        const link = document.createElement('span');
+        link.className = 'clickable';
+        link.style.fontStyle = 'italic';
+        
+        if (choice.id === 'first_path') {
+          if (option.id === 'logic') link.classList.add('path-logic');
+          if (option.id === 'creativity') link.classList.add('path-creativity');
+          if (option.id === 'intuition') link.classList.add('path-intuition');
+        }
+        
+        link.textContent = option.text;
+        link.onclick = () => {
+          option.effect();
+          updateDisplay();
+        };
+        choiceLine.appendChild(link);
+        container.appendChild(choiceLine);
+      });
+    }
+  });
+}
+
+function updateUpgrades() {
+  const container = document.getElementById('upgrade-container');
+  container.innerHTML = '';
+  UPGRADES.forEach(upgrade => {
+    const owned = state[upgrade.id] || 0;
+    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, owned));
+    
+    let canShow = state.knowledge >= upgrade.showAt &&
+      (!upgrade.requiresProject || state.projectsCompleted[upgrade.requiresProject]) &&
+      (!upgrade.requiresPath || state.path === upgrade.requiresPath) &&
+      (!upgrade.requiresMeta || state.metaUpgrades[upgrade.requiresMeta]);
+    
+    if (upgrade.requiresChoice && upgrade.requiresChoiceValue) {
+      canShow = canShow && state.choicesMade[upgrade.requiresChoice] === upgrade.requiresChoiceValue;
+    }
+    
+    if (canShow || owned > 0) {
+      const line = document.createElement('div');
+      if (upgrade.special && upgrade.galaxy) {
+        line.className = 'galaxy-upgrade';
+      } else if (upgrade.special) {
+        line.classList.add('secret-upgrade');
+      }
+      
+      const canAfford = state.knowledge >= cost;
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = upgrade.name;
+      
+      let infoText = ' (' + formatNumber(cost) + ') [' + owned + ']';
+      let effects = [];
+      if (upgrade.kps) effects.push('+' + upgrade.kps + '/s');
+      if (upgrade.clickBonus) effects.push('+' + upgrade.clickBonus + '/click');
+      if (upgrade.insightGen) effects.push('insights');
+      if (upgrade.focusGen) effects.push('focus');
+      if (upgrade.tradeoff) effects.push('⚠ reduces ' + upgrade.tradeoff);
+      if (effects.length > 0) infoText += ' — ' + effects.join(', ');
+      
+      const info = document.createTextNode(infoText);
+      link.onclick = function() {
+        if (state.knowledge >= cost) {
+          state.knowledge -= cost;
+          upgrade.effect();
+          const desc = UPGRADE_DESCRIPTIONS[upgrade.id];
+          if (desc) addStory(desc);
+          updateDisplay();
+        }
+      };
+      line.appendChild(link);
+      line.appendChild(info);
+      
+      if (upgrade.tradeoffExplanation) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tradeoff-tooltip';
+        tooltip.textContent = upgrade.tradeoffExplanation;
+        line.appendChild(tooltip);
+      }
+      
+      container.appendChild(line);
+    }
+  });
+}
+
+function updateProjects() {
+  const container = document.getElementById('project-container');
+  container.innerHTML = '';
+  PROJECTS.forEach(project => {
+    if (state.projectsCompleted[project.id]) return;
+    const canShow = state.knowledge >= project.showAt &&
+      (!project.requiresProject || state.projectsCompleted[project.requiresProject]) &&
+      (!project.requiresChoice || state.choicesMade[project.requiresChoice]);
+    if (canShow) {
+      const line = document.createElement('div');
+      line.className = 'line';
+      if (project.secret) line.classList.add('secret-upgrade');
+      const knowledgeCost = project.cost || 0;
+      const insightCost = project.insightCost || 0;
+      const canAfford = state.knowledge >= knowledgeCost && state.insights >= insightCost;
+      const link = document.createElement('span');
+      link.className = canAfford ? 'clickable' : 'clickable disabled';
+      link.textContent = project.name;
+      let costText = ' (' + formatNumber(knowledgeCost);
+      if (insightCost > 0) costText += ', ' + formatNumber(insightCost) + ' insights';
+      costText += ')';
+      if (project.desc) costText += ' — ' + project.desc;
+      const info = document.createTextNode(costText);
+      link.onclick = () => {
+        if (state.knowledge >= knowledgeCost && state.insights >= insightCost) {
+          state.knowledge -= knowledgeCost;
+          state.insights -= insightCost;
+          state.projectsCompleted[project.id] = true;
+          project.effect();
+          updateDisplay();
+        }
+      };
+      line.appendChild(link);
+      line.appendChild(info);
+      container.appendChild(line);
+    }
+  });
+}
+
+function updateResources() {
+  const container = document.getElementById('resource-container');
+  container.innerHTML = '';
+  const resources = [];
+  if (state.plasticity > 0) resources.push('plasticity: ' + formatNumber(state.plasticity));
+  if (state.neurons > 0) resources.push('neurons: ' + formatNumber(state.neurons));
+  if (state.synapses > 0) resources.push('synapse factories: ' + formatNumber(state.synapses));
+  if (state.pattern_recognition > 0) resources.push('pattern recognition: ' + formatNumber(state.pattern_recognition));
+  if (state.memory > 0) resources.push('memory banks: ' + formatNumber(state.memory));
+  if (state.logic > 0) resources.push('logic processors: ' + formatNumber(state.logic));
+  if (state.creativity > 0) resources.push('creative engines: ' + formatNumber(state.creativity));
+  if (state.intuition > 0) resources.push('intuitive cores: ' + formatNumber(state.intuition));
+  if (state.collective > 0) resources.push('collective nodes: ' + formatNumber(state.collective));
+  if (state.divergence > 0) resources.push('divergence engines: ' + formatNumber(state.divergence));
+  if (state.convergence > 0) resources.push('convergence cores: ' + formatNumber(state.convergence));
+  if (state.transcendence > 0) resources.push('transcendence nodes: ' + formatNumber(state.transcendence));
+  if (state.nebula_nexus > 0) resources.push('nebula nexus: ' + formatNumber(state.nebula_nexus));
+  if (state.quantum_entanglement > 0) resources.push('quantum entanglement: ' + formatNumber(state.quantum_entanglement));
+  if (state.stellar_synthesis > 0) resources.push('stellar synthesis: ' + formatNumber(state.stellar_synthesis));
+  if (state.cosmic_convergence > 0) resources.push('cosmic convergence: ' + formatNumber(state.cosmic_convergence));
+  if (state.void_resonator > 0) resources.push('void resonator: ' + formatNumber(state.void_resonator));
+  if (state.dimensional_matrix > 0) resources.push('dimensional matrix: ' + formatNumber(state.dimensional_matrix));
+  if (state.infinity_catalyst > 0) resources.push('infinity catalyst: ' + formatNumber(state.infinity_catalyst));
+  if (resources.length > 0) {
+    container.classList.remove('hidden');
+    resources.forEach(r => {
+      const line = document.createElement('div');
+      line.className = 'line';
+      line.textContent = r;
+      container.appendChild(line);
+    });
+  } else {
+    container.classList.add('hidden');
+  }
+}
+
+function formatNumber(num) {
+  if (typeof num !== 'number' || isNaN(num)) num = 0;
+  const floored = Math.floor(num);
+  return floored.toLocaleString('en-US');
+}
+
+function render() {
+  updateDisplay();
+  updateChoices();
+  updateUpgrades();
+  updateProjects();
+  updateQuestDisplay();
+  updateResources();
+  updateEnlightenmentDisplay();
+  updateMetaUpgrades();
+}
+
+function updateDisplay() {
+  document.getElementById('knowledge-value').textContent = formatNumber(state.knowledge);
+  document.getElementById('insight-value').textContent = formatNumber(state.insights);
+  document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  
+  // Show wisdom counter if player has any wisdom or has enlightened at least once
+  const wisdomCounterLine = document.getElementById('wisdom-counter-line');
+  if (state.wisdom > 0 || state.totalEnlightenments > 0) {
+    wisdomCounterLine.style.display = 'block';
+    document.getElementById('wisdom-counter-value').textContent = formatNumber(state.wisdom);
+  } else {
+    wisdomCounterLine.style.display = 'none';
+  }
+  
+  let kps = calculateKPS();
+  let clickPower = calculateClickPower();
+  document.getElementById('kps').textContent = formatNumber(kps);
+  document.getElementById('kpc').textContent = formatNumber(clickPower);
+  document.getElementById('total-clicks').textContent = formatNumber(state.totalClicks);
+  
+  const breakdown = getKPSBreakdown();
+  const breakdownEl = document.getElementById('kps-breakdown');
+  if (breakdown.length > 0) {
+    breakdownEl.classList.remove('hidden');
+    breakdownEl.textContent = breakdown.join(' | ');
+  }
+  
+  document.getElementById('next-milestone').textContent = getNextMilestone();
+  
+  let ips = 0;
+  if (state.creativity > 0) {
+    ips = state.creativity * (state.path === 'creativity' ? 0.05 : 0.01);
+    if (state.metaUpgrades['timeless_insight']) ips *= 10;
+  }
+  document.getElementById('ips').textContent = formatNumber(ips);
+  
+  let wps = 0;
+  if (state.projectsCompleted['wisdom_proj'] && state.insights > 100) {
+    wps = state.insights * 0.0001;
+    if (state.metaUpgrades['deep_meditation']) wps *= 3;
+  }
+  document.getElementById('wps').textContent = formatNumber(wps);
+  
+  if (state.projectsCompleted['resonance']) {
+    document.getElementById('resonance-value').textContent = formatNumber(state.resonance);
+  }
+  
+  updateUpgrades();
+  updateProjects();
+  updateChoices();
+  updateQuestDisplay();
+  updateResources();
+  updateEnlightenmentDisplay();
+  updateMetaUpgrades();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  init();
+});
+
+</script>
+</body>
+</html>
