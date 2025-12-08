@@ -253,6 +253,10 @@
         wisdom: <span id="wisdom-value">0</span> <span style="font-size: 0.85em; opacity: 0.6;">(eternal)</span>
       </div>
 
+      <div class="line" id="wisdom-counter-line" style="display: none;">
+        wisdom: <span id="wisdom-counter-value">0</span>
+      </div>
+
       <div id="per-second-panel" class="hidden" style="margin-top: 10px; margin-bottom: 15px;">
         <div class="line">knowledge per second: <span id="kps">0</span></div>
         <div class="production-breakdown hidden" id="kps-breakdown"></div>
@@ -1009,6 +1013,18 @@ function updateEnlightenmentDisplay() {
 }
 
 function calculateWisdomGain() {
+  // Give wisdom equal to the cost of the next meta upgrade the player can afford
+  const availableUpgrades = META_UPGRADES.filter(u => 
+    state.totalEnlightenments >= u.requiresEnlightenments && !state.metaUpgrades[u.id]
+  );
+  
+  if (availableUpgrades.length > 0) {
+    // Return the cost of the cheapest available upgrade
+    const cheapest = availableUpgrades.reduce((min, u) => u.wisdomCost < min ? u.wisdomCost : min, Infinity);
+    return cheapest;
+  }
+  
+  // If no upgrades available, give a base amount
   let gain = Math.floor(Math.sqrt(state.knowledge) / 10);
   if (state.path === 'logic') gain = Math.floor(gain * 1.5);
   if (state.path === 'creativity') gain = Math.floor(gain * 1.3);
@@ -1365,6 +1381,15 @@ function updateDisplay() {
   document.getElementById('knowledge-value').textContent = formatNumber(state.knowledge);
   document.getElementById('insight-value').textContent = formatNumber(state.insights);
   document.getElementById('wisdom-value').textContent = formatNumber(state.wisdom);
+  
+  // Show wisdom counter if player has any wisdom or has enlightened at least once
+  const wisdomCounterLine = document.getElementById('wisdom-counter-line');
+  if (state.wisdom > 0 || state.totalEnlightenments > 0) {
+    wisdomCounterLine.style.display = 'block';
+    document.getElementById('wisdom-counter-value').textContent = formatNumber(state.wisdom);
+  } else {
+    wisdomCounterLine.style.display = 'none';
+  }
   
   let kps = calculateKPS();
   let clickPower = calculateClickPower();
