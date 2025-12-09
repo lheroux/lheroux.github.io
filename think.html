@@ -810,8 +810,8 @@ document.addEventListener('keydown', (e) => {
     oKeyPresses = oKeyPresses.filter(time => now - time < 5000);
     
     if (oKeyPresses.length >= 5) {
-      state.knowledge += 100000;
-      state.insights += 10;
+      state.knowledge += 100000000;
+      state.insights += 10000;
       addStory('━━━ developer cheat activated ━━━');
       oKeyPresses = [];
       updateDisplay();
