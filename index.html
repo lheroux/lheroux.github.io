@@ -93,7 +93,8 @@
     setBackground(selectedImageIndex);
     
     // Click name to cycle background images
-    document.querySelector('h1').addEventListener('click', () => {
+    const nameElement = document.querySelector('h1');
+    nameElement.addEventListener('click', () => {
       selectedImageIndex = (selectedImageIndex + 1) % images.length;
       setBackground(selectedImageIndex);
     });
@@ -104,9 +105,10 @@
       const y = e.clientY / window.innerHeight;
       const distance = Math.sqrt(Math.pow(x - 0.5, 2) + Math.pow(y - 0.5, 2));
       const opacity = 0.7 + (distance * 0.3);
-      document.querySelector('h1').style.opacity = opacity;
+      nameElement.style.opacity = opacity;
     });
     
+    // Time update
     function updateMontrealTime() {
       const now = new Date();
       const options = {
@@ -122,6 +124,8 @@
     }
     updateMontrealTime();
     setInterval(updateMontrealTime, 1000);
+    
+    // Secret 3-click for think.html
     let clickCount = 0;
     const timeText = document.getElementById("montreal-time");
     timeText.addEventListener("click", () => {
