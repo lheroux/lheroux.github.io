@@ -69,7 +69,7 @@
 <body>
   <p class="top-text" id="montreal-time">time in montréal - </p>
   <div class="container">
-    <h1>laurent hérox</h1>
+    <h1>Laurent Héroux</h1>
   </div>
   <div class="copyright">© laurent héroux 2025</div>
   <div class="footer-links" id="footer-links">
@@ -120,13 +120,13 @@
     const timeText = document.getElementById("montreal-time");
     timeText.addEventListener("click", () => {
       clickCount++;
+      console.log("Click count:", clickCount);
       if (clickCount === 3) {
         const footer = document.getElementById("footer-links");
-        const gameLink = document.createElement("a");
-        gameLink.href = "think.html";
-        gameLink.textContent = "think";
-        footer.innerHTML += " – ";
-        footer.appendChild(gameLink);
+        if (!footer.innerHTML.includes("think")) {
+          footer.innerHTML += " – <a href='think.html'>think</a>";
+        }
+        clickCount = 0;
       }
     });
   </script>
