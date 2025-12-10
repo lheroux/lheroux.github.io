@@ -41,7 +41,6 @@
       transform: translateX(-50%);
       font-size: 1em;
       margin: 0;
-      cursor: pointer;
     }
     .copyright {
       position: absolute;
@@ -76,7 +75,8 @@
     <a href="about.html">about</a> –
     <a href="contact.html">contact</a> –
     <a href="portfolio.html">portfolio</a> –
-    <a href="archives.html">archives</a>
+    <a href="archives.html">archives</a> –
+    <a href="think.html">think</a>
   </div>
   <script>
     const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
@@ -114,21 +114,6 @@
     }
     updateMontrealTime();
     setInterval(updateMontrealTime, 1000);
-    
-    // Secret 3-click for think.html
-    let clickCount = 0;
-    const timeText = document.getElementById("montreal-time");
-    timeText.addEventListener("click", () => {
-      clickCount++;
-      console.log("Click count:", clickCount);
-      if (clickCount === 3) {
-        const footer = document.getElementById("footer-links");
-        if (!footer.innerHTML.includes("think")) {
-          footer.innerHTML += " – <a href='think.html'>think</a>";
-        }
-        clickCount = 0;
-      }
-    });
   </script>
 </body>
 </html>
