@@ -1,119 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LAURENT HÉROUX</title>
+  <title>archives – LAURENT HÉROUX</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
   <style>
     html, body {
       margin: 0;
-      height: 100%;
+      padding: 0;
       font-family: "Times New Roman", serif;
-      color: white;
-      text-shadow: 0px 0px 0px black;
-      position: relative;
+      background: white;
+      color: black;
+      height: 100%;
+      overflow: hidden;
     }
     .container {
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100%;
+      height: 100vh;
+      padding-bottom: 200px;
+    }
+    .content {
+      max-width: 600px;
       text-align: center;
-      opacity: 0;
-      animation: fadeIn 1.5s ease-in forwards;
-    }
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-      }
-    }
-    h1 {
-      font-style: italic;
-      font-size: 2em;
-      margin: 0px 0 20px 0;
-      cursor: pointer;
-    }
-    p.top-text {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
       font-size: 1em;
-      margin: 0;
+      line-height: 1.6;
     }
-    .copyright {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      font-size: 0.8em;
-      text-shadow: 0px 0px 0px black;
-    }
-    .footer-links {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      font-size: 1em;
-    }
-    .footer-links a {
-      color: white;
+    .content a {
+      color: black;
       text-decoration: none;
-      margin: 0 5px;
     }
-    .footer-links a:hover {
+    .content a:hover {
+      text-decoration: underline;
+    }
+    .home-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1em;
+    }
+    .home-link a {
+      color: black;
+      text-decoration: none;
+    }
+    .home-link a:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <p class="top-text" id="montreal-time">time in montréal - </p>
   <div class="container">
-    <h1>Laurent Héroux</h1>
+    <div class="content">
+      <a href="archives/EarlyHistoryofNeuroscience.html">Early History of Neuroscience</a> ; <a href="archives/CGG.html">Charles G. Gross</a>
+    </div>
   </div>
-  <div class="copyright">© laurent héroux 2025</div>
-  <div class="footer-links" id="footer-links">
-    <a href="about.html">about</a> –
-    <a href="contact.html">contact</a> –
-    <a href="portfolio.html">portfolio</a> –
-    <a href="archives.html">archives</a> –
-    <a href="think.html">think</a>
+  <div class="home-link">
+    <a href="index.html">home</a>
   </div>
-  <script>
-    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
-    let selectedImageIndex = 2;
-    
-    function setBackground(index) {
-      document.body.style.backgroundImage = `url('${images[index]}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundRepeat = 'no-repeat';
-    }
-    
-    setBackground(selectedImageIndex);
-    
-    // Click name to cycle background images
-    const nameElement = document.querySelector('h1');
-    nameElement.addEventListener('click', () => {
-      selectedImageIndex = (selectedImageIndex + 1) % images.length;
-      setBackground(selectedImageIndex);
-    });
-    
-    // Time update
-    function updateMontrealTime() {
-      const now = new Date();
-      const options = {
-        timeZone: 'America/Toronto',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      };
-      const timeString = now.toLocaleTimeString('en-CA', options);
-      document.getElementById('montreal-time').textContent =
-        `time in montréal - ${timeString}`;
-    }
-    updateMontrealTime();
-    setInterval(updateMontrealTime, 1000);
-  </script>
 </body>
 </html>
