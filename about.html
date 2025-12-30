@@ -1,11 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <title>about – LAURENT HÉROUX</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
-  <title>ABOUT - LAURENT HÉROUX</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Times New Roman", serif;
+      background: white;
+      color: black;
+      height: 100%;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .content {
+      max-width: 600px;
+      text-align: justify;
+      font-size: 1em;
+      line-height: 1.6;
+    }
+    .content a {
+      color: black;
+      text-decoration: none;
+    }
+    .content a:hover {
+      text-decoration: underline;
+    }
+    .home-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1em;
+    }
+    .home-link a {
+      color: black;
+      text-decoration: none;
+    }
+    .home-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h1>ABOUT</h1>
-  <p>Main text here, coming soon</p>
+  <div class="container">
+    <div class="content">
+      From Montréal. I speak French and English. I have a <a href="https://www.youtube.com/@laurentheroux" target="_blank">YouTube channel</a> where I talk about what comes to my mind. I have projects of opening my own startup in the future. For conversations, ideas, or professional inquiries: <a href="mailto:lheroux@protonmail.com">lheroux@protonmail.com</a>. I love tech and stationery, more videos on that coming soon. Follow my YouTube :)
+    </div>
+  </div>
+  <div class="home-link">
+    <a href="index.html">home</a>
+  </div>
 </body>
 </html>
