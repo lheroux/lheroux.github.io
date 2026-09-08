@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ideas – LAURENT HÉROUX</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Times New Roman", serif;
+      background: white;
+      color: black;
+      height: 100%;
+      overflow: hidden;
+    }
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+    .idea {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-size: 1em;
+      white-space: nowrap;
+      transition: top 0.8s ease, left 0.8s ease;
+    }
+    .idea a {
+      color: black;
+      text-decoration: none;
+    }
+    .idea a:hover {
+      text-decoration: underline;
+    }
+    .home-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 1em;
+    }
+    .home-link a {
+      color: black;
+      text-decoration: none;
+    }
+    .home-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+
+  <div class="home-link">
+    <a href="index.html">home</a>
+  </div>
+
+  <script>
+    // Add ideas here. name = link text, file = destination page
+    const ideas = [
+      { name: "On Signs", file: "ideas/OnSigns.html" },
+      { name: "The Neuroscience of Beauty", file: "ideas/NeuroscienceOfBeauty.html" },
+      { name: "Would You Rather", file: "ideas/WouldYouRather.html" }
+    ];
+
+    const stage = document.getElementById('stage');
+
+    function layoutPositions(n) {
+      // returns array of {xPct, yPct} in percentages of viewport
+      const positions = [];
+      if (n === 1) {
+        positions.push({ x: 50, y: 50 });
+      } else if (n === 2) {
+        positions.push({ x: 35, y: 50 });
+        positions.push({ x: 65, y: 50 });
+      } else if (n === 3) {
+        positions.push({ x: 50, y: 30 });
+        positions.push({ x: 32, y: 65 });
+        positions.push({ x: 68, y: 65 });
+      } else if (n === 4) {
+        positions.push({ x: 35, y: 35 });
+        positions.push({ x: 65, y: 35 });
+        positions.push({ x: 35, y: 65 });
+        positions.push({ x: 65, y: 65 });
+      } else {
+        // 5+: grid arrangement forming a growing rectangle
+        const cols = Math.ceil(Math.sqrt(n * (16 / 9)));
+        const rows = Math.ceil(n / cols);
+        const xMargin = 20;
+        const yMargin = 20;
+        const xSpan = 100 - xMargin * 2;
+        const ySpan = 100 - yMargin * 2;
+        for (let i = 0; i < n; i++) {
+          const row = Math.floor(i / cols);
+          const col = i % cols;
+          const xStep = cols > 1 ? xSpan / (cols - 1) : 0;
+          const yStep = rows > 1 ? ySpan / (rows - 1) : 0;
+          const x = cols > 1 ? xMargin + col * xStep : 50;
+          const y = rows > 1 ? yMargin + row * yStep : 50;
+          positions.push({ x, y });
+        }
+      }
+      return positions;
+    }
+
+    function render() {
+      stage.innerHTML = '';
+      const positions = layoutPositions(ideas.length);
+      ideas.forEach((idea, i) => {
+        const div = document.createElement('div');
+        div.className = 'idea';
+        div.style.left = positions[i].x + '%';
+        div.style.top = positions[i].y + '%';
+        div.innerHTML = `<a href="${idea.file}">${idea.name}</a>`;
+        stage.appendChild(div);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>
