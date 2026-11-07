@@ -9,8 +9,8 @@
       margin: 0;
       height: 100%;
       font-family: "Times New Roman", serif;
-      color: white;
-      text-shadow: 0px 0px 0px black;
+      background: white;
+      color: black;
       position: relative;
     }
     .container {
@@ -32,7 +32,6 @@
       font-style: italic;
       font-size: 2em;
       margin: 0px 0 20px 0;
-      cursor: pointer;
     }
     p.top-text {
       position: absolute;
@@ -47,7 +46,6 @@
       bottom: 10px;
       left: 10px;
       font-size: 0.8em;
-      text-shadow: 0px 0px 0px black;
     }
     .footer-links {
       position: absolute;
@@ -56,7 +54,7 @@
       font-size: 1em;
     }
     .footer-links a {
-      color: white;
+      color: black;
       text-decoration: none;
       margin: 0 5px;
     }
@@ -79,25 +77,6 @@
     <a href="ideas.html">ideas</a>
   </div>
   <script>
-    const images = ['image1.JPG', 'image2.JPG', 'image3.JPG', 'image4.JPG']; 
-    let selectedImageIndex = 2;
-    
-    function setBackground(index) {
-      document.body.style.backgroundImage = `url('${images[index]}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundRepeat = 'no-repeat';
-    }
-    
-    setBackground(selectedImageIndex);
-    
-    // Click name to cycle background images
-    const nameElement = document.querySelector('h1');
-    nameElement.addEventListener('click', () => {
-      selectedImageIndex = (selectedImageIndex + 1) % images.length;
-      setBackground(selectedImageIndex);
-    });
-    
     // Time update
     function updateMontrealTime() {
       const now = new Date();
