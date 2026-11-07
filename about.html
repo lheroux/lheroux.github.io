@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>about – LAURENT HÉROUX</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html, body {
       margin: 0;
@@ -12,26 +13,36 @@
       background: white;
       color: black;
       height: 100%;
-      overflow: hidden;
     }
     .container {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      height: 100%;
+      padding: 0 24px;
+      box-sizing: border-box;
     }
-    .content {
-      max-width: 600px;
-      text-align: justify;
+    .text {
+      max-width: 760px;
       font-size: 1em;
-      line-height: 1.6;
+      line-height: 1.5;
+      text-align: justify;
+      text-align-last: justify;
+      hyphens: auto;
+      -webkit-hyphens: auto;
     }
-    .content a {
+    .text p {
+      margin: 0;
+    }
+    a {
       color: black;
       text-decoration: none;
     }
-    .content a:hover {
+    a:hover {
       text-decoration: underline;
+    }
+    .text a {
+      white-space: nowrap;
     }
     .home-link {
       position: fixed;
@@ -39,21 +50,15 @@
       right: 20px;
       font-size: 1em;
     }
-    .home-link a {
-      color: black;
-      text-decoration: none;
-    }
-    .home-link a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="content">
-      Montréal. Neurosciences cognitives UdeM.  I like things, like tech, stationery and litterature. For conversations, ideas, or professional inquiries: <a href="mailto:lheroux@protonmail.com">lheroux@protonmail.com</a>. :)
+    <div class="text">
+      <p>Montréal. Neuroscience cognitive at UdeM. I like tech, stationery, art, litterature, design, neural networks and cognitive science. Follow me on instagram <a href="https://www.instagram.com/laurent.heroux1" target="_blank" rel="noopener">@laurent.heroux1</a></p>
     </div>
   </div>
+
   <div class="home-link">
     <a href="index.html">home</a>
   </div>
