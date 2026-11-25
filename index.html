@@ -10,7 +10,11 @@
       margin: 0;
       padding: 0;
       font-family: "Times New Roman", serif;
-      background: white;
+      background-color: white;
+      background-image: url("clouds1.jpg");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%; /* stretch to fit the screen */
       color: black;
       height: 100%;
       overflow: hidden;
@@ -28,15 +32,22 @@
     }
     #net { display: none; }
 
-    /* normal view: links in a circle */
-    .link {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      white-space: nowrap;
+    /* normal view: links in a row at the bottom */
+    #circle {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 0 28px;
+      padding-bottom: 90px;
+      box-sizing: border-box;
+      pointer-events: none;
     }
+    .link { white-space: nowrap; }
     .link a {
       color: black;
       text-decoration: none;
+      pointer-events: auto;
     }
     .link a:hover {
       text-decoration: underline;
@@ -87,21 +98,16 @@
       { name: "ideas", file: "ideas.html" }
     ];
 
-    let mode = 'circle';   // 'circle' or 'net'
+    let mode = 'circle';   // 'circle' (bottom row) or 'net'
 
-    /* ---------- normal view: circle ---------- */
+    /* ---------- normal view: row at the bottom ---------- */
     const circle = document.getElementById('circle');
 
     function buildCircle() {
       circle.innerHTML = '';
-      const n = links.length;
-      const radius = Math.max(150, Math.min(window.innerWidth, window.innerHeight) * 0.32);
-      links.forEach((link, i) => {
-        const angle = (i / n) * 2 * Math.PI;
+      links.forEach(link => {
         const div = document.createElement('div');
         div.className = 'link';
-        div.style.left = `calc(50% + ${Math.sin(angle) * radius}px)`;
-        div.style.top = `calc(50% + ${-Math.cos(angle) * radius}px)`;
         div.innerHTML = `<a href="${link.file}">${link.name}</a>`;
         circle.appendChild(div);
       });
@@ -212,7 +218,7 @@
       } else {
         running = false;
         svg.style.display = 'none';
-        circle.style.display = 'block';
+        circle.style.display = 'flex';
         buildCircle();
       }
     }
@@ -230,7 +236,7 @@
       }
     });
 
-    window.addEventListener('resize', () => mode === 'circle' ? buildCircle() : buildNet());
+    window.addEventListener('resize', () => { if (mode === 'net') buildNet(); });
     showMode('circle');
 
     /* ---------- Montréal time ---------- */
